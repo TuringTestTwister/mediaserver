@@ -1,0 +1,5 @@
+build
+result
+*.qcow2
+*.img
+*.zst
