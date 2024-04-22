@@ -1,10 +1,12 @@
-{ inputs, hostParams, ... }:
+{ inputs, hostParams, pkgs, ... }:
 
 {
   imports = [
     inputs.nixos-generators.nixosModules.all-formats
     ./modules/network-manager-wireless.nix
     ./profiles/common.nix
+    ./profiles/mopidy.nix
+    ./profiles/snapcast.nix
     ./profiles/spotify-connect.nix
   ];
 
@@ -53,6 +55,8 @@
   # --------------------------------------------------------------------------------------
   # Hardware specific
   # --------------------------------------------------------------------------------------
+
+  security.rtkit.enable = true;
 }
 
 

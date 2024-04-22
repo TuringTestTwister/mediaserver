@@ -1,6 +1,9 @@
 { ... }:
 
 {
+  imports = [
+    ./bluetooth.nix
+  ];
   sound.enable = true;
 
   hardware.pulseaudio = {
