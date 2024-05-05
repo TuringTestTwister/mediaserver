@@ -41,7 +41,7 @@
       enable = true;
     };
     wireless = {
-      # Disable wpa_supplicant
+      # disable wpa_supplicant
       enable = false;
       # Used by modules/network-manager-wireless.nix
       networks = {
@@ -50,6 +50,13 @@
         };
       };
     };
+  };
+
+  # Supposedly fixes bluetooth stuttering by setting the appropriate region to limit frequencies, but doesn't seem to work
+  environment.etc."default/crda" = {
+    text = ''
+      REGDOMAIN=US
+    '';
   };
 
   # --------------------------------------------------------------------------------------

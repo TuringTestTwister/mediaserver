@@ -162,7 +162,7 @@
 
   # network locator e.g. scanners and printers
   services.avahi.enable = true;
-  services.avahi.nssmdns = true;
+  services.avahi.nssmdns4 = true;
 
   services.gvfs.enable = true; # SMB mounts, trash, and other functionality
   services.tumbler.enable = true; # Thumbnail support for images
@@ -175,6 +175,9 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+
+  # Enable eternal terminal
+  services.eternal-terminal.enable = true;
 
   # This will save you money and possibly your life!
   ## Not supported on raspberry pi?
@@ -201,6 +204,10 @@
 
   networking.search = [ "localdomain" ];
 
+  networking.firewall.allowedTCPPorts = [
+    2022    # eternal terminal
+  ];
+
   # --------------------------------------------------------------------------------------
   # Base Packages
   # --------------------------------------------------------------------------------------
@@ -216,7 +223,7 @@
   programs.neovim = {
     enable = true;
     defaultEditor = true;
-};
+  };
 
   environment.interactiveShellInit = ''
     alias vi='nvim'
@@ -235,6 +242,7 @@
     distrobox
     dmidecode
     dos2unix
+    eternal-terminal
     exfat
     exiftool
     ffmpeg

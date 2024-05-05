@@ -2,8 +2,10 @@
   description = "Media Server";
 
   inputs = {
-    # Use stable for main
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    ## Bluetooth doesn't currently work on stable
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # Trails trunk - latest packages with broken commits filtered out
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -19,6 +21,27 @@
     };
 
     nix-editor.url = "github:vlinkz/nix-editor";
+
+    u-boot-src = {
+      flake = false;
+      url = "https://ftp.denx.de/pub/u-boot/u-boot-2024.01.tar.bz2";
+    };
+    rpi-linux-6_1-src = {
+      flake = false;
+      url = "github:raspberrypi/linux/stable_20231123";
+    };
+    rpi-firmware-src = {
+      flake = false;
+      url = "github:raspberrypi/firmware/7e6decce72fdff51923e9203db46716835ae889a";
+    };
+    rpi-firmware-nonfree-src = {
+      flake = false;
+      url = "github:RPi-Distro/firmware-nonfree/88aa085bfa1a4650e1ccd88896f8343c22a24055";
+    };
+    rpi-bluez-firmware-src = {
+      flake = false;
+      url = "github:RPi-Distro/bluez-firmware/d9d4741caba7314d6500f588b1eaa5ab387a4ff5";
+    };
   };
 
   outputs = {
