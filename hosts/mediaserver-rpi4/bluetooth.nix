@@ -1,6 +1,16 @@
 { lib, pkgs, hostParams, ... }:
 {
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,Socket";
+        Class = "0x0041C";
+      };
+    };
+  };
+
   services.blueman.enable = true;
 
   #-------------------------------------------------------------------------------
@@ -40,6 +50,8 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       ExecStart = "${pkgs.bluez}/bin/btattach -B /dev/ttyAMA0 -P bcm -S 3000000";
+      # User = "root";
+      # Group = "root";
     };
   };
 }
