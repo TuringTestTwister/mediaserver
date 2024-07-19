@@ -95,3 +95,14 @@ sudo nmcli dev wifi connect <network-ssid> --ask
 sudo device set wlan0 autoconnect yes
 ```
 
+### Connecting bluetooth device
+
+```
+bluetoothctl
+  power on
+  discoverable on
+  pairable on
+  # pair from phone
+  # answer yes to everything on phone and mediaserver
+  trust
+```
