@@ -6,7 +6,9 @@
     ./modules/network-manager-wireless.nix
     ./profiles/common.nix
     ./profiles/mopidy.nix
+    # ./profiles/bluealsa.nix
     ./profiles/snapcast.nix
+    ./profiles/sound.nix
     ./profiles/spotify-connect.nix
   ];
 

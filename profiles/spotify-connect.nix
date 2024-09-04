@@ -5,7 +5,8 @@ let
   cache-args = "--disable-audio-cache";
   # cache-args = "--cache /var/cache/raspotify";
   volume-args = "--enable-volume-normalisation --volume-ctrl=linear --initial-volume=100";
-  backend-args = "--backend=alsa";
+  # backend-args = "--backend=alsa";
+  backend-args = "--backend=pipe --device=/run/snapserver/pulseaudio";
   zeroconf-port = 5354;
   zeroconf-args = "--zeroconf-port=${toString zeroconf-port}";
   ## Allows for seeing device across the internet
@@ -19,6 +20,7 @@ in
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
+        ## Needed to get access to pulseaudio
         User = hostParams.username;
         Group = "users";
         # User = "root";

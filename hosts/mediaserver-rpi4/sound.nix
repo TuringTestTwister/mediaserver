@@ -5,8 +5,6 @@
     ./bluetooth.nix
   ];
 
-  sound.enable = true;
-
   hardware.pulseaudio = {
     enable = true;
     # Add out-of-tree support for AAC, APTX, APTX-HD and LDAC
