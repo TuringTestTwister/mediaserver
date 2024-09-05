@@ -1,6 +1,6 @@
 { lib, pkgs, hostParams, ... }:
 let
-  device-name = "mediaserver";
+  device-name = hostParams.hostName;
   bitrate = "320";
   cache-args = "--disable-audio-cache";
   # cache-args = "--cache /var/cache/raspotify";
