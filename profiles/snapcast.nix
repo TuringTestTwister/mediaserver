@@ -23,6 +23,8 @@
   networking.firewall.allowedTCPPorts = [ 1704 1705 1780 ];
 
   ## Use local audio (locally connected speaker)
+  ## TO DEBUG INSTABILITY:
+  ##   https://github.com/badaix/snapcast/issues/774
   systemd.services.snapclient = {
     wantedBy = [
       "pulseaudio.service"
@@ -35,9 +37,7 @@
       snapcast
     ];
     script = ''
-      ${pkgs.snapcast}/bin/snapclient --latency 40 -h ::1
-
-      # ${pkgs.snapcast}/bin/snapclient --player alsa --latency 40 -h ::1
+      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=180,fragments=300 --sampleformat 48000:16:* --latency 40 -h ::1
 
       ## Use pulse instead of alsa
       ## Requires "pactl move-sink-input <sink-input number> 0" after running

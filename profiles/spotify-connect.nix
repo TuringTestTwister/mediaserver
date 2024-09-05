@@ -16,7 +16,7 @@ in
   systemd.services = {
     spotify-connect = {
       description = "Spotify Connect Daemon";
-      after = [ "network.target" ];
+      after = [ "spanclient.service" ];
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
