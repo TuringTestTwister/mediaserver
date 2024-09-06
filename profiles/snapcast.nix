@@ -51,29 +51,29 @@
   };
 
 
-  ## Creates sink for various inputs (spotify, bluetooth)
-  systemd.services.snapcast-sink = {
-    wantedBy = [
-      "pulseaudio.service"
-    ];
-    after = [
-      "pulseaudio.service"
-    ];
-    bindsTo = [
-      "pulseaudio.service"
-    ];
-    path = with pkgs; [
-      gawk
-      pulseaudio
-    ];
-    script = ''
-      pactl load-module module-pipe-sink file=/run/snapserver/pulseaudio sink_name=Snapcast format=s16le rate=48000
-      pactl set-default-sink Snapcast
-    '';
-    serviceConfig = {
-      ## Needed to get access to pulseaudio
-      User = hostParams.username;
-    };
-  };
+  ## Creates sink for various inputs (mainly bluetooth)
+  # systemd.services.snapcast-sink = {
+  #   wantedBy = [
+  #     "pulseaudio.service"
+  #   ];
+  #   after = [
+  #     "pulseaudio.service"
+  #   ];
+  #   bindsTo = [
+  #     "pulseaudio.service"
+  #   ];
+  #   path = with pkgs; [
+  #     gawk
+  #     pulseaudio
+  #   ];
+  #   script = ''
+  #     pactl load-module module-pipe-sink file=/run/snapserver/pulseaudio sink_name=Snapcast format=s16le rate=48000
+  #     # pactl set-default-sink Snapcast
+  #   '';
+  #   serviceConfig = {
+  #     ## Needed to get access to pulseaudio
+  #     User = hostParams.username;
+  #   };
+  # };
 }
 
