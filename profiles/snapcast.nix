@@ -38,7 +38,7 @@
       snapcast
     ];
     script = ''
-      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency 40 -h ${hostParams.snapcastServerHost}
+      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       ## Use pulse instead of alsa
       ## Requires "pactl move-sink-input <sink-input number> 0" after running
