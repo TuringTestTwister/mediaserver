@@ -9,11 +9,11 @@
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
-  ## Supposedly fixes bluetooth stuttering due to wifi interference
+  ## Fixes bluetooth stuttering due to wifi interference by only allowing 5Ghz Wifi, which does not interfer with Bluetooth
   ## https://github.com/raspberrypi/linux/issues/5522
-  ## But doesn't seem to work
   boot.extraModprobeConfig = ''
     options cfg80211 ieee80211_regdom="US"
+    options brcmfmac roamoff=1
   '';
   hardware.firmware = with pkgs; [ 
     wireless-regdb
