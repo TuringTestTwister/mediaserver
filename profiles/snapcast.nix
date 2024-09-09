@@ -12,7 +12,7 @@
     codec = "flac";
     sampleFormat = "44100:16:2";
     streams = {
-      Pulseaudio  = {
+      Pulseaudio = {
         type = "pipe";
         location = "/run/snapserver/pulseaudio";
       };

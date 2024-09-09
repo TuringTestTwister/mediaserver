@@ -11,4 +11,5 @@
   hashedPassword = "<replace me>";
   wifiSSID = "<replace me>";
   wifiPassword = "<replace me>";
+  snapcastServerHost = "::1";
 }
