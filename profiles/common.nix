@@ -284,6 +284,7 @@
     utillinux
     vulnix
     wireguard-tools
+    wirelesstools
     wget
     xz
     zip

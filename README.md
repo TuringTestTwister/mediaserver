@@ -92,7 +92,7 @@ manually connect to other networks after ssh'ing into the mediaserver.
 
 ```
 sudo nmcli dev wifi connect <network-ssid> --ask
-sudo device set wlan0 autoconnect yes
+sudo nmcli device set wlan0 autoconnect yes
 ```
 
 ### Connecting bluetooth device

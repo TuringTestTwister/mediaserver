@@ -15,7 +15,11 @@
   boot.extraModprobeConfig = ''
     options cfg80211 ieee80211_regdom="US"
   '';
-  hardware.firmware = [ pkgs.wireless-regdb ];
+  hardware.firmware = with pkgs; [ 
+    wireless-regdb
+    firmwareLinuxNonfree
+    raspberrypiWirelessFirmware
+  ];
 
   # Enable GPU acceleration
   hardware.raspberry-pi."4".fkms-3d.enable = true;
