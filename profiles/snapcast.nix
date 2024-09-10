@@ -38,7 +38,8 @@
       snapcast
     ];
     script = ''
-      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      ${pkgs.snapcast}/bin/snapclient --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       ## Use pulse instead of alsa
       ## Requires "pactl move-sink-input <sink-input number> 0" after running
@@ -52,28 +53,27 @@
   };
 
   ## Creates sink for various inputs (mainly bluetooth)
-  # systemd.services.snapcast-sink = {
-  #   wantedBy = [
-  #     "pulseaudio.service"
-  #   ];
-  #   after = [
-  #     "pulseaudio.service"
-  #   ];
-  #   bindsTo = [
-  #     "pulseaudio.service"
-  #   ];
-  #   path = with pkgs; [
-  #     gawk
-  #     pulseaudio
-  #   ];
-  #   script = ''
-  #     pactl load-module module-pipe-sink file=/run/snapserver/pulseaudio sink_name=Snapcast format=s16le rate=48000
-  #     pactl set-default-sink Snapcast
-  #   '';
-  #   serviceConfig = {
-  #     ## Needed to get access to pulseaudio
-  #     User = hostParams.username;
-  #   };
-  # };
+  systemd.services.snapcast-sink = {
+    wantedBy = [
+      "pulseaudio.service"
+    ];
+    after = [
+      "pulseaudio.service"
+    ];
+    bindsTo = [
+      "pulseaudio.service"
+    ];
+    path = with pkgs; [
+      gawk
+      pulseaudio
+    ];
+    script = ''
+      pactl load-module module-pipe-sink file=/run/snapserver/pulseaudio sink_name=Snapcast format=s16le rate=48000
+    '';
+    serviceConfig = {
+      ## Needed to get access to pulseaudio
+      User = hostParams.username;
+    };
+  };
 }
 
