@@ -10,6 +10,9 @@ TODOS
     * common binary cache config for arm
 * Get rid of rubber-duck-5g
 * Figure out bluetooth streaming to snapcast-sink
+  * Two sources of loops
+    * Android snapclient playing and streaming over bluetooth at the same time
+    * raspi snapclient sink-input going to pipe sink intead of alsa sink
 * Use this example of loading one flake from another to keep secrets and other sensitive data separate
   * https://github.com/tstat/raspberry-pi-nix-example/blob/master/flake.nix
 * Raspbery pi cross compilation tips

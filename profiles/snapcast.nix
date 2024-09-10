@@ -18,6 +18,12 @@
       };
     };
     openFirewall = true;
+    http = {
+      enable = true;
+      ## @TODO: Change this to a custom package that gets a release from github:
+      ## https://github.com/badaix/snapweb/releases
+      docRoot = "/var/run/snapweb";
+    };
   };
 
   # Should not be needed with openFirewall property above also set
@@ -39,12 +45,12 @@
     ];
     script = ''
       # ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-      ${pkgs.snapcast}/bin/snapclient --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      ${pkgs.snapcast}/bin/snapclient --player alsa --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       ## Use pulse instead of alsa
       ## Requires "pactl move-sink-input <sink-input number> 0" after running
       ## Otherwise gets in a feedback loop
-      # ${pkgs.snapcast}/bin/snapclient --player pulse -h ::1 --latency 60
+      # ${pkgs.snapcast}/bin/snapclient --player pulse -h ::1
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
@@ -68,7 +74,7 @@
       pulseaudio
     ];
     script = ''
-      pactl load-module module-pipe-sink file=/run/snapserver/pulseaudio sink_name=Snapcast format=s16le rate=48000
+      pactl load-module module-pipe-sink file=/run/snapserver/pulseaudio sink_name=Snapcast format=s16le rate=44100
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
