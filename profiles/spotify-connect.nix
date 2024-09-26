@@ -6,7 +6,7 @@ let
   # cache-args = "--cache /var/cache/raspotify";
   volume-args = "--enable-volume-normalisation --volume-ctrl=linear --initial-volume=100";
   # backend-args = "--backend=alsa";
-  backend-args = "--backend=pipe --device=/run/snapserver/pulseaudio";
+  backend-args = "--backend=pipe --device=/run/snapserver/spotify";
   zeroconf-port = 5354;
   zeroconf-args = "--zeroconf-port=${toString zeroconf-port}";
   ## Allows for seeing device across the internet
