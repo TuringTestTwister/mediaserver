@@ -45,13 +45,13 @@
 
   services.dbus.enable = true;
 
-  # nixpkgs.overlays = [
-  #   ((import ./overlays) { 
-  #     u-boot-src = inputs.u-boot-src;
-  #     rpi-linux-6_1-src = inputs.rpi-linux-6_1-src;
-  #     rpi-firmware-src = inputs.rpi-firmware-src;
-  #     rpi-firmware-nonfree-src = inputs.rpi-firmware-nonfree-src;
-  #     rpi-bluez-firmware-src = inputs.rpi-bluez-firmware-src;
-  #   })
-  # ];
+  ## make sure audio is enabled at start
+  boot.loader.raspberryPi.firmwareConfig = ''
+    dtparam=audio=on
+  '';
+
+  imports = [
+    # Makes bluetooth controller available
+    ./bluetooth-device-tree.nix
+  ];
 }

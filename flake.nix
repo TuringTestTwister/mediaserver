@@ -64,10 +64,11 @@
       #   system = system;
       #   modules = [
       #     nixos-hardware.nixosModules.raspberry-pi-4
-      #     (import ./configuration.nix)
-      #     (import ./hosts/mediaserver-rpi4/hardware-configuration.nix)
-      #     (import ./hosts/mediaserver-rpi4/boot.nix)
-      #     (import ./hosts/mediaserver-rpi4/sound.nix)
+      #     ./configuration.nix
+      #     ./hosts/mediaserver-rpi4/hardware-configuration.nix
+      #     ./hosts/mediaserver-rpi4/boot.nix
+      #     ./hosts/mediaserver-rpi4/bluetooth.nix
+      #     ./hosts/mediaserver-rpi4/sound.nix
       #   ];
       #   format = "sd-aarch64";
       #   specialArgs = {
@@ -83,10 +84,11 @@
         system = system;
         modules = [
           nixos-hardware.nixosModules.raspberry-pi-4
-          (import ./configuration.nix)
-          (import ./hosts/mediaserver-rpi4/hardware-configuration.nix)
-          (import ./hosts/mediaserver-rpi4/boot.nix)
-          (import ./hosts/mediaserver-rpi4/sound.nix)
+          ./configuration.nix
+          ./hosts/mediaserver-rpi4/hardware-configuration.nix
+          ./hosts/mediaserver-rpi4/boot.nix
+          ./hosts/mediaserver-rpi4/bluetooth.nix
+          ./hosts/mediaserver-rpi4/sound.nix
         ];
         specialArgs = {
           inherit inputs;
@@ -103,9 +105,9 @@
         modules = [
           nixos-hardware.nixosModules.common-cpu-intel
           nixos-hardware.nixosModules.common-pc-laptop
-          (import ./configuration.nix)
-          (import ./profiles/hardware-configuration.nix)
-          (import ./profiles/virtual-machine.nix)
+          ./configuration.nix
+          ./profiles/hardware-configuration.nix
+          ./profiles/virtual-machine.nix
         ];
         specialArgs = {
           inherit inputs;

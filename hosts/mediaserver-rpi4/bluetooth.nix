@@ -18,45 +18,44 @@
 
   services.blueman.enable = true;
 
-  #-------------------------------------------------------------------------------
-  # See: https://github.com/NixOS/nixpkgs/issues/123725#issuecomment-1613705556
-  #-------------------------------------------------------------------------------
-
-  hardware.raspberry-pi."4".apply-overlays-dtmerge.enable = lib.mkDefault true;
-  # doesn't work for the CM module, so we exclude e.g. bcm2835-rpi-cm4.dts
-  hardware.deviceTree.filter = "bcm2711-rpi-4*.dtb";
-  hardware.deviceTree = {
-    overlays = [
-      {
-        name = "bluetooth-overlay";
-        dtsText = ''
-          /dts-v1/;
-          /plugin/;
-
-          / {
-              compatible = "brcm,bcm2711";
-
-              fragment@0 {
-                  target = <&uart0_pins>;
-                  __overlay__ {
-                          brcm,pins = <30 31 32 33>;
-                          brcm,pull = <2 0 0 2>;
-                  };
-              };
-          };
-        '';
-      }
+  systemd.services.bluetooth-auto-pair = {
+    wantedBy = [
+      "bluetooth.service"
     ];
-  };
+    after = [
+      "bluetooth.service"
+    ];
+    bindsTo = [
+      "bluetooth.service"
+    ];
+    path = with pkgs; [
+      bluez
+    ];
+    script = ''
+      # SEE: https://raspberrypi.stackexchange.com/questions/50496/automatically-accept-bluetooth-pairings
 
-  # systemd.services.btattach = {
-  #   before = [ "bluetooth.service" ];
-  #   after = [ "dev-ttyAMA0.device" ];
-  #   wantedBy = [ "multi-user.target" ];
-  #   serviceConfig = {
-  #     ExecStart = "${pkgs.bluez}/bin/btattach -B /dev/ttyAMA0 -P bcm -S 3000000";
-  #     # User = "root";
-  #     # Group = "root";
-  #   };
-  # };
+      ## @TODO: None of these work completely. Method 2 seems to allow pairing, but audio doesn't work
+
+      # Method 1
+      bluetoothctl <<EOF
+      power on
+      discoverable on
+      pairable on
+      agent NoInputNoOutput
+      default-agent 
+      EOF
+
+      # Method 2
+      btmgmt power off
+      btmgmt discov on
+      btmgmt connectable on
+      btmgmt pairable on
+      btmgmt power on
+      btmgmt io-cap 3   # 3 is agent NoInputNoOutput
+
+      # Method 3
+      hciconfig hci0 piscan 
+      hciconfig hci0 sspmode 1
+    '';
+  };
 }

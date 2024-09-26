@@ -1,10 +1,6 @@
 { pkgs, ... }:
 
 {
-  imports = [
-    ./bluetooth.nix
-  ];
-
   hardware.pulseaudio = {
     enable = true;
     # Add out-of-tree support for AAC, APTX, APTX-HD and LDAC
@@ -21,8 +17,4 @@
   #   pulse.enable = true;
   #   # jack.enable = true;
   # };
-
-  boot.loader.raspberryPi.firmwareConfig = ''
-    dtparam=audio=on
-  '';
 }
