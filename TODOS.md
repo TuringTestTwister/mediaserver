@@ -1,18 +1,12 @@
 TODOS
 =====
 
-* Move to wpa_supplicant
-  * Use freq_list=5170 5180 5190 5200 5210 5220 5230 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 5720 5745 5765 5785 5805 5825
-  * https://en.wikipedia.org/wiki/List_of_WLAN_channels#5_GHz_(802.11a/h/n/ac/ax/be)
+* Set up bluez simple-agent for auto pairing and trust
+  * https://github.com/pauloborges/bluez/blob/master/test/simple-agent
 * Move to nixos-anywhere deployment
   * Make flake for host machine
     * virtual machine config
     * common binary cache config for arm
-* Get rid of rubber-duck-5g
-* Figure out bluetooth streaming to snapcast-sink
-  * Two sources of loops
-    * Android snapclient playing and streaming over bluetooth at the same time
-    * raspi snapclient sink-input going to pipe sink intead of alsa sink
 * Use this example of loading one flake from another to keep secrets and other sensitive data separate
   * https://github.com/tstat/raspberry-pi-nix-example/blob/master/flake.nix
 * Raspbery pi cross compilation tips
@@ -52,3 +46,10 @@ DONE
     * BUT, it stutters
 * Add eternal terminal
   * https://eternalterminal.dev/
+* Move to wpa_supplicant
+  * Use freq_list=5170 5180 5190 5200 5210 5220 5230 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 5720 5745 5765 5785 5805 5825
+  * https://en.wikipedia.org/wiki/List_of_WLAN_channels#5_GHz_(802.11a/h/n/ac/ax/be)
+* Figure out bluetooth streaming to snapcast-sink
+  * Two sources of loops
+    * Android snapclient playing and streaming over bluetooth at the same time
+    * raspi snapclient sink-input going to pipe sink intead of alsa sink
