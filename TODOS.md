@@ -3,6 +3,12 @@ TODOS
 
 * Set up bluez simple-agent for auto pairing and trust
   * https://github.com/pauloborges/bluez/blob/master/test/simple-agent
+  * https://stackoverflow.com/questions/30233442/automate-bluetooth-pairing-trusting-in-bluez5
+* Remote streaming to facilitate connecting bluetooth to any node
+  * https://github.com/badaix/snapcast/issues/355
+* Evaluate posts on multiroom audio setups
+  * https://www.reddit.com/r/homeassistant/comments/jqa3sv/help_me_decide_on_a_multiroom_audio_system/
+  * https://www.reddit.com/r/homeassistant/comments/ogsf9a/holy_grail_of_my_tinkering_is_so_close_yet_so_far/
 * Move to nixos-anywhere deployment
   * Make flake for host machine
     * virtual machine config

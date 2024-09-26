@@ -1,4 +1,7 @@
 { lib, pkgs, hostParams, ... }:
+let
+  snapweb = pkgs.callPackage ../pkgs/snapweb {};
+in
 {
 
   environment.systemPackages = with pkgs; [
@@ -12,6 +15,10 @@
     codec = "flac";
     sampleFormat = "44100:16:2";
     streams = {
+      Main = {
+        type = "meta";
+        location = "/Spotify/Bluetooth";
+      };
       Spotify = {
         type = "pipe";
         location = "/run/snapserver/spotify";
@@ -28,7 +35,7 @@
       enable = true;
       ## @TODO: Change this to a custom package that gets a release from github:
       ## https://github.com/badaix/snapweb/releases
-      docRoot = "/var/run/snapweb";
+      docRoot = "${snapweb}/share/html";
     };
   };
 
@@ -82,6 +89,7 @@
     ];
     script = ''
       pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=Snapcast format=s16le rate=44100
+      # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
