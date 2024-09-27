@@ -2,6 +2,7 @@ TODOS
 =====
 
 * Set up bluez simple-agent for auto pairing and trust
+  * https://forums.raspberrypi.com/viewtopic.php?t=68779
   * https://github.com/pauloborges/bluez/blob/master/test/simple-agent
   * https://stackoverflow.com/questions/30233442/automate-bluetooth-pairing-trusting-in-bluez5
 * Remote streaming to facilitate connecting bluetooth to any node

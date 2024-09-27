@@ -18,17 +18,33 @@ in
       Main = {
         type = "meta";
         ## Prioritize bluetooth over spotify
-        location = "/Bluetooth/Spotify";
+        # location = "/Bluetooth/Spotify/partymusic/mediaserver/speakerserver";
+        location = "/Spotify/partymusic/mediaserver/speakerserver";
       };
       Spotify = {
         type = "pipe";
         location = "/run/snapserver/spotify";
       };
-      Bluetooth = {
-        type = "pipe";
-        location = "/run/snapserver/bluetooth";
-        ## Per stream sampleformat doesn't seem to work
-        # sampleFormat = "48000:24:2";
+      # Bluetooth = {
+      #   type = "pipe";
+      #   location = "/run/snapserver/bluetooth";
+      #   ## Per stream sampleformat doesn't seem to work
+      #   # sampleFormat = "48000:24:2";
+      # };
+      partymusic = {
+        type = "tcp";
+	query.mode = "client";
+	location = "10.0.0.29"; # default port is 4953
+      };
+      mediaserver = {
+        type = "tcp";
+        query.mode = "client";
+        location = "10.0.0.32"; # default port is 4953
+      };
+      speakerserver = {
+        type = "tcp";
+	query.mode = "client";
+	location = "10.0.0.28"; # default port is 4953
       };
     };
     openFirewall = true;
@@ -41,7 +57,7 @@ in
   };
 
   # Should not be needed with openFirewall property above also set
-  networking.firewall.allowedTCPPorts = [ 1704 1705 1780 ];
+  networking.firewall.allowedTCPPorts = [ 1704 1705 1780 4953 ];
 
   ## Use local audio (locally connected speaker)
   ## TO DEBUG INSTABILITY:
@@ -90,6 +106,7 @@ in
     ];
     script = ''
       pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=Snapcast format=s16le rate=44100
+      # pactl load-module module-pipe-sink file=/tmp/bluetooth sink_name=Snapcast format=s16le rate=44100
       # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100
     '';
     serviceConfig = {
@@ -128,7 +145,7 @@ in
 	  echo "unloading module-loopback"
           pactl unload-module module-loopback
 	  echo "reloading module-loopback with input latency of 500ms"
-          pactl load-module module-loopback latency_msec=500
+          pactl load-module module-loopback latency_msec=500 format=s16le rate=41000 channels=2
         fi
 
         ## @TODO: Verify that there is no need to wait for source-output events before loading module-loopback above
