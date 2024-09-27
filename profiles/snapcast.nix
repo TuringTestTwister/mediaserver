@@ -17,7 +17,8 @@ in
     streams = {
       Main = {
         type = "meta";
-        location = "/Spotify/Bluetooth";
+        ## Prioritize bluetooth over spotify
+        location = "/Bluetooth/Spotify";
       };
       Spotify = {
         type = "pipe";
