@@ -18,8 +18,8 @@ in
       Main = {
         type = "meta";
         ## Prioritize bluetooth over spotify
-        # location = "/Bluetooth/Spotify/partymusic/mediaserver/speakerserver";
-        location = "/TCP/Spotify/";
+        # location = "/Bluetooth/Spotify";
+        location = "/TCP/Spotify";
       };
       Spotify = {
         type = "pipe";
@@ -153,14 +153,22 @@ in
     script = ''
       # infinte loop in case sever is down
       while true; do
+        echo "Looking up IP for host: ${hostParams.snapcastServerHost}"
         # make sure DNS resolution is working before starting
         while [ -z "$SNAPCAST_SERVER_IP" ]; do
           SNAPCAST_SERVER_IP=$(dig +short ${hostParams.snapcastServerHost})
+          if [ -z "$SNAPCAST_SERVER_IP" ]; then
+            echo "did not resolve. trying again"
+            sleep 1
+          fi
         done
+        echo "Got IP: $SNAPCAST_SERVER_IP"
+        echo "Starting stream of /run/bluetoothsink/fifo to server"
         set +e
         dd if=/run/bluetoothsink/fifo > /dev/tcp/$SNAPCAST_SERVER_IP/4953
         set -e
-	sleep 10
+        echo "dd process exited"
+        sleep 10
       done
     '';
     serviceConfig = {
@@ -199,7 +207,7 @@ in
 	  echo "unloading module-loopback"
           pactl unload-module module-loopback
 	  echo "reloading module-loopback with input latency of 500ms"
-          pactl load-module module-loopback latency_msec=500 format=s16le rate=41000 channels=2
+          pactl load-module module-loopback latency_msec=500 format=s16le rate=44100 channels=2 sink=BluetoothFifo
         fi
 
         ## @TODO: Verify that there is no need to wait for source-output events before loading module-loopback above
