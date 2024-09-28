@@ -193,6 +193,7 @@ in
       "bluetoothsink.service"
     ];
     path = with pkgs; [
+      gawk
       pulseaudio
     ];
     script = ''
@@ -206,8 +207,10 @@ in
           new_source=1
 	  echo "unloading module-loopback"
           pactl unload-module module-loopback
-	  echo "reloading module-loopback with input latency of 500ms"
-          pactl load-module module-loopback latency_msec=500 format=s16le rate=44100 channels=2 sink=BluetoothFifo
+          SOURCE=$(pactl list short sources | grep bluez_source | awk '{ print $2 }')
+          echo "reloading module-loopback with input latency of 500ms"
+	  echo "source: $SOURCE, sink: BluetoothFifo"
+          pactl load-module module-loopback latency_msec=500 format=s16le rate=44100 channels=2 source=$SOURCE sink=BluetoothFifo
         fi
 
         ## @TODO: Verify that there is no need to wait for source-output events before loading module-loopback above
