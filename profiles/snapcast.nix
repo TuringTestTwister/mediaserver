@@ -210,7 +210,7 @@ in
           SOURCE=$(pactl list short sources | grep bluez_source | awk '{ print $2 }')
           echo "reloading module-loopback with input latency of 500ms"
 	  echo "source: $SOURCE, sink: BluetoothFifo"
-          pactl load-module module-loopback latency_msec=500 format=s16le rate=44100 channels=2 source=$SOURCE sink=BluetoothFifo
+          pactl load-module module-loopback latency_msec=500 format=s16le rate=44100 channels=2 source=$SOURCE sink=BluetoothFifo source_dont_move=true sink_dont_move=true
         fi
 
         ## @TODO: Verify that there is no need to wait for source-output events before loading module-loopback above
