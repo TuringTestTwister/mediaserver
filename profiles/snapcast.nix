@@ -157,7 +157,9 @@ in
         while [ -z "$SNAPCAST_SERVER_IP" ]; do
           SNAPCAST_SERVER_IP=$(dig +short ${hostParams.snapcastServerHost})
         done
+        set +e
         dd if=/run/bluetoothsink/fifo > /dev/tcp/$SNAPCAST_SERVER_IP/4953
+        set -e
 	sleep 10
       done
     '';
