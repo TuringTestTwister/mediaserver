@@ -19,7 +19,7 @@ in
         type = "meta";
         ## Prioritize bluetooth over spotify
         # location = "/Bluetooth/Spotify/partymusic/mediaserver/speakerserver";
-        location = "/Spotify/partymusic/mediaserver/speakerserver";
+        location = "/TCP/Spotify/";
       };
       Spotify = {
         type = "pipe";
@@ -31,20 +31,9 @@ in
       #   ## Per stream sampleformat doesn't seem to work
       #   # sampleFormat = "48000:24:2";
       # };
-      partymusic = {
+      TCP = {
         type = "tcp";
-	query.mode = "client";
-	location = "10.0.0.29"; # default port is 4953
-      };
-      mediaserver = {
-        type = "tcp";
-        query.mode = "client";
-        location = "10.0.0.32"; # default port is 4953
-      };
-      speakerserver = {
-        type = "tcp";
-	query.mode = "client";
-	location = "10.0.0.28"; # default port is 4953
+        location = "0.0.0.0"; # default port is 4953
       };
     };
     openFirewall = true;
@@ -89,8 +78,8 @@ in
     };
   };
 
-  ## Creates sink for various inputs (mainly bluetooth)
-  systemd.services.snapcast-sink = {
+  ## Creates FIFO sink for Bluetooth
+  systemd.services.bluetoothsink = {
     wantedBy = [
       "pulseaudio.service"
     ];
@@ -101,13 +90,76 @@ in
       "pulseaudio.service"
     ];
     path = with pkgs; [
+      coreutils
       gawk
       pulseaudio
     ];
     script = ''
-      pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=Snapcast format=s16le rate=44100
-      # pactl load-module module-pipe-sink file=/tmp/bluetooth sink_name=Snapcast format=s16le rate=44100
-      # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100
+      rm -rf /run/bluetoothsink/fifo    
+      mkfifo -m 0666 /run/bluetoothsink/fifo
+      pactl load-module module-pipe-sink file=/run/bluetoothsink/fifo sink_name=BluetoothFifo format=s16le rate=44100
+
+      # make sure /run/bluetoothsink sticks around
+      sleep infinity
+    '';
+    serviceConfig = {
+      ## Needed to get access to pulseaudio
+      User = hostParams.username;
+      RuntimeDirectory = "bluetoothsink";
+      RuntimeDirectoryMode = "0777";
+      # PermissionsStartOnly = true;
+    };
+  };
+
+  # ## Creates sink for various inputs (mainly bluetooth)
+  # systemd.services.snapcast-sink = {
+  #   wantedBy = [
+  #     "pulseaudio.service"
+  #   ];
+  #   after = [
+  #     "pulseaudio.service"
+  #   ];
+  #   bindsTo = [
+  #     "pulseaudio.service"
+  #   ];
+  #   path = with pkgs; [
+  #     pulseaudio
+  #   ];
+  #   script = ''
+  #     pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=Snapcast format=s16le rate=44100
+  #     # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100
+  #   '';
+  #   serviceConfig = {
+  #     ## Needed to get access to pulseaudio
+  #     User = hostParams.username;
+  #   };
+  # };
+
+  ## Streams bluetooth audio to main server
+  systemd.services.bluetooth-streamer = {
+    wantedBy = [
+      "bluetoothsink.service"
+    ];
+    after = [
+      "bluetoothsink.service"
+    ];
+    bindsTo = [
+      "bluetoothsink.service"
+    ];
+    path = with pkgs; [
+      coreutils
+      dnsutils
+    ];
+    script = ''
+      # infinte loop in case sever is down
+      while true; do
+        # make sure DNS resolution is working before starting
+        while [ -z "$SNAPCAST_SERVER_IP" ]; do
+          SNAPCAST_SERVER_IP=$(dig +short ${hostParams.snapcastServerHost})
+        done
+        dd if=/run/bluetoothsink/fifo > /dev/tcp/$SNAPCAST_SERVER_IP/4953
+	sleep 10
+      done
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
@@ -122,13 +174,13 @@ in
   ## (in this case, a bluetooth connection) is detected.
   systemd.services.pulseaudio-loopback-update-latency= {
     wantedBy = [
-      "pulseaudio.service"
+      "bluetoothsink.service"
     ];
     after = [
-      "pulseaudio.service"
+      "bluetoothsink.service"
     ];
     bindsTo = [
-      "pulseaudio.service"
+      "bluetoothsink.service"
     ];
     path = with pkgs; [
       pulseaudio
