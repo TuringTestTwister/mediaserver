@@ -1,6 +1,9 @@
 TODOS
 =====
 
+* BROKEN: snapserver needs to be restarted again after rebooting or else tcp stream can't be connected to
+* BROKEN: module-pipe-sink needs to be reloaded if snapserver is restarted
+* BROKEN: if pulseaudio-event-handler fails, it gets stuck
 * Set up bluez simple-agent for auto pairing and trust
   * https://github.com/pauloborges/bluez/blob/master/test/simple-agent
   * https://stackoverflow.com/questions/30233442/automate-bluetooth-pairing-trusting-in-bluez5

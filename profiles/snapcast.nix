@@ -12,25 +12,43 @@ in
   ## Provides streams from various sources, including pulse audio sink
   services.snapserver = {
     enable = true;
-    codec = "flac";
+    codec = if hostParams.controller == true then "flac" else "pcm";
     sampleFormat = "44100:16:2";
-    streams = {
-      Main = {
-        type = "meta";
-        ## Prioritize bluetooth over spotify
-        location = "/Bluetooth/Spotify";
-      };
-      Spotify = {
-        type = "pipe";
-        location = "/run/snapserver/spotify";
-      };
-      Bluetooth = {
-        type = "pipe";
-        location = "/run/snapserver/bluetooth";
-        ## Per stream sampleformat doesn't seem to work
-        # sampleFormat = "48000:24:2";
-      };
-    };
+    streams = lib.mkMerge [
+      {
+        Main = {
+          type = "meta";
+          ## Prioritize bluetooth over spotify
+          location = if hostParams.controller == true then "/Bluetooth/mediaserver/speakerserver/Spotify" else "/Bluetooth/Spotify";
+        };
+        Spotify = {
+          type = "pipe";
+          location = "/run/snapserver/spotify";
+        };
+        Bluetooth = {
+          type = "pipe";
+          location = "/run/snapserver/bluetooth";
+          ## Per stream sampleformat doesn't seem to work
+          # sampleFormat = "48000:24:2";
+        };
+      }
+      (if hostParams.controller == true then {
+        mediaserver = {
+          type = "tcp";
+          query = {
+            mode = "client";
+          };
+          location = "10.0.0.32:1704"; # default port 4953
+        };
+        speakerserver = {
+          type = "tcp";
+          query = {
+            mode = "client";
+          };
+          location = "10.0.0.28:1704"; # default port 4953
+        };
+      } else {})
+    ];
     openFirewall = true;
     http = {
       enable = true;
@@ -58,14 +76,17 @@ in
       snapcast
     ];
     script = ''
-      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # "-s 2" selects "headphone" alsa device
+      ${pkgs.snapcast}/bin/snapclient -s 2 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+
+      # pactl set-default-sink 0
+      # ${pkgs.snapcast}/bin/snapclient --player pulse --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
       # ${pkgs.snapcast}/bin/snapclient --player alsa --sampleformat 48000:24:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
       # ${pkgs.snapcast}/bin/snapclient --player alsa --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       ## Use pulse instead of alsa
       ## Requires "pactl move-sink-input <sink-input number> 0" after running
       ## Otherwise gets in a feedback loop
-      # ${pkgs.snapcast}/bin/snapclient --player pulse -h ::1
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
@@ -85,12 +106,11 @@ in
       "pulseaudio.service"
     ];
     path = with pkgs; [
-      gawk
       pulseaudio
     ];
     script = ''
-      pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=Snapcast format=s16le rate=44100
-      # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100
+      pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=BluetoothFifo format=s16le rate=44100 channels=2
+      # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100 channels=2
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
@@ -103,7 +123,7 @@ in
   ## it has an underrun, but this can take minutes before audio stabilizes.
   ## Instead, reload the module-loopback with higher latency once a new source
   ## (in this case, a bluetooth connection) is detected.
-  systemd.services.pulseaudio-loopback-update-latency= {
+  systemd.services.pulseaudio-event-handler = {
     wantedBy = [
       "pulseaudio.service"
     ];
@@ -114,30 +134,33 @@ in
       "pulseaudio.service"
     ];
     path = with pkgs; [
+      gawk
+      gnugrep
       pulseaudio
     ];
     script = ''
       source_number=""
 
       ## new_source is used to make sure loopback is only ever reloaded once
-      new_source=0
-      pactl subscribe | while read x event y type num; do
-        if [ $event == "'new'" -a $type == 'source' ]; then
-          echo "event: $event, type: $type, num: $num"
-          new_source=1
-	  echo "unloading module-loopback"
-          pactl unload-module module-loopback
-	  echo "reloading module-loopback with input latency of 500ms"
-          pactl load-module module-loopback latency_msec=500
-        fi
-
-        ## @TODO: Verify that there is no need to wait for source-output events before loading module-loopback above
-        # if [ $event == "'new'" -a $type == 'source-output' -a $new_source == '1' ]; then
-	#   echo "type: $type"
-        #   pactl unload-module module-loopback
-        #   pactl load-module module-loopback latency_msec=500
-        #   new_source=0
-        # fi
+      while [ true ]; do
+        pactl subscribe | while read x event y type num; do
+          if [ $event == "'new'" -a $type == 'source' ]; then
+            echo "event: $event, type: $type, num: $num"
+            SOURCE=$(pactl list short sources | grep bluez_source | awk '{ print $2 }') 
+            if [ ! -z "$SOURCE" ]; then
+              echo "unloading module-loopback"
+              pactl unload-module module-loopback
+              echo "Loading bluetooth loopback to fifo with input latency of 500ms"
+              echo "source: $SOURCE, sink: BluetoothFifo"
+              pactl load-module module-loopback latency_msec=500 format=s16le rate=44100 channels=2 source=$SOURCE sink=BluetoothFifo source_dont_move=true sink_dont_move=true
+              retval=$?
+              if [ $retval -ne 0 ]; then
+                # start subscription again on failure. it seems to get stuck
+	        break
+              fi
+            fi 
+          fi
+        done
       done
     '';
     serviceConfig = {
