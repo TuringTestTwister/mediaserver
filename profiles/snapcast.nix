@@ -77,7 +77,7 @@ in
     ];
     script = ''
       # "-s 2" selects "headphone" alsa device
-      ${pkgs.snapcast}/bin/snapclient -s 2 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       # pactl set-default-sink 0
       # ${pkgs.snapcast}/bin/snapclient --player pulse --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
