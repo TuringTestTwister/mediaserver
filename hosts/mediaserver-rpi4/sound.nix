@@ -7,11 +7,6 @@
     package = pkgs.pulseaudioFull;
     systemWide = true;
     support32Bit = true;
-    ## @TODO: move to snapcast profile?
-    extraConfig = ''
-      # Don't switch sources on detection
-      unload-module module-switch-on-port-available
-    '';
   };
 
   # services.pipewire = {

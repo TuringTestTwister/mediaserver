@@ -118,6 +118,13 @@ in
     };
   };
 
+  hardware.pulseaudio = {
+    extraConfig = ''
+      # Don't switch sources on detection
+      unload-module module-switch-on-port-available
+    '';
+  };
+
   ## Pulseaudio downsamples audio from Bluetooth, and module-loopback
   ## experiences buffer underruns. It bumps the input latency by 5ms every time
   ## it has an underrun, but this can take minutes before audio stabilizes.

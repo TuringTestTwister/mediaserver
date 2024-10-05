@@ -13,4 +13,5 @@
   wifiPassword = "<replace me>";
   snapcastLatency = "0";
   snapcastServerHost = "::1";
+  controller = false;
 }
