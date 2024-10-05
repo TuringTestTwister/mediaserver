@@ -3,6 +3,8 @@ TODOS
 
 * HACK: figure out how to get snapclient to connect to proper default automatically
   * currently need forceHeadphoneOutput param hack
+  * TODO: How to reset ALSA settings - currently partymusic's default output is off for ALSA
+* TODO: auto-select a_main output. Seems to be defaulting to b_bluetooth
 * Set up bluez simple-agent for auto pairing and trust
   * https://github.com/pauloborges/bluez/blob/master/test/simple-agent
   * https://stackoverflow.com/questions/30233442/automate-bluetooth-pairing-trusting-in-bluez5
