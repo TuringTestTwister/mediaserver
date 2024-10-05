@@ -1,6 +1,8 @@
 { lib, pkgs, hostParams, ... }:
 let
   snapweb = pkgs.callPackage ../pkgs/snapweb {};
+  # "-s sysdefault" selects "headphone" alsa device
+  snapclientSoundcardParam = if hostParams.forceHeadphoneOutput then "-s sysdefault" else "";
 in
 {
   environment.systemPackages = with pkgs; [
@@ -59,17 +61,7 @@ in
       snapcast
     ];
     script = ''
-      # "-s 2" selects "headphone" alsa device
-      snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-
-      # pactl set-default-sink 0
-      # snapclient --player pulse --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-      # snapclient --player alsa --sampleformat 48000:24:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-      # snapclient --player alsa --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-
-      ## Use pulse instead of alsa
-      ## Requires "pactl move-sink-input <sink-input number> 0" after running
-      ## Otherwise gets in a feedback loop
+      snapclient ${snapclientSoundcardParam} --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
