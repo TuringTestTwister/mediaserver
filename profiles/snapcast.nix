@@ -3,57 +3,40 @@ let
   snapweb = pkgs.callPackage ../pkgs/snapweb {};
 in
 {
-
   environment.systemPackages = with pkgs; [
     snapcast
   ];
+
+  imports = if hostParams.controller then [
+    ./snapcast-controller.nix
+  ] else [];
 
   ## Creates server for all clients (speakers) to connect to
   ## Provides streams from various sources, including pulse audio sink
   services.snapserver = {
     enable = true;
-    codec = if hostParams.controller == true then "flac" else "pcm";
+    codec = "flac";
     sampleFormat = "44100:16:2";
-    streams = lib.mkMerge [
-      {
-        Main = {
-          type = "meta";
-          ## Prioritize bluetooth over spotify
-          location = if hostParams.controller == true then "/Bluetooth/mediaserver/speakerserver/Spotify" else "/Bluetooth/Spotify";
-        };
-        Spotify = {
-          type = "pipe";
-          location = "/run/snapserver/spotify";
-        };
-        Bluetooth = {
-          type = "pipe";
-          location = "/run/snapserver/bluetooth";
-          ## Per stream sampleformat doesn't seem to work
-          # sampleFormat = "48000:24:2";
-        };
-      }
-      (if hostParams.controller == true then {
-        mediaserver = {
-          type = "tcp";
-          query = {
-            mode = "client";
-          };
-          location = "10.0.0.32:1704"; # default port 4953
-        };
-        speakerserver = {
-          type = "tcp";
-          query = {
-            mode = "client";
-          };
-          location = "10.0.0.28:1704"; # default port 4953
-        };
-      } else {})
-    ];
+    streams = {
+      Main = {
+        type = "meta";
+        ## Prioritize bluetooth over spotify
+        location = "/Bluetooth/Spotify";
+      };
+      Spotify = {
+        type = "pipe";
+        location = "/run/snapserver/spotify";
+      };
+      Bluetooth = {
+        type = "pipe";
+        location = "/run/snapserver/bluetooth";
+        ## Per stream sampleformat doesn't seem to work
+        # sampleFormat = "48000:24:2";
+      };
+    };
     openFirewall = true;
     http = {
       enable = true;
-      ## @TODO: Change this to a custom package that gets a release from github:
-      ## https://github.com/badaix/snapweb/releases
       docRoot = "${snapweb}/share/html";
     };
   };
@@ -77,12 +60,12 @@ in
     ];
     script = ''
       # "-s 2" selects "headphone" alsa device
-      ${pkgs.snapcast}/bin/snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      snapclient --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       # pactl set-default-sink 0
-      # ${pkgs.snapcast}/bin/snapclient --player pulse --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-      # ${pkgs.snapcast}/bin/snapclient --player alsa --sampleformat 48000:24:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-      # ${pkgs.snapcast}/bin/snapclient --player alsa --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # snapclient --player pulse --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # snapclient --player alsa --sampleformat 48000:24:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # snapclient --player alsa --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
 
       ## Use pulse instead of alsa
       ## Requires "pactl move-sink-input <sink-input number> 0" after running
