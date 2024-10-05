@@ -3,7 +3,7 @@
   # @TODO: make list of hosts configured from hostParams
   services.snapserver = {
     streams = {
-      Main.location = lib.mkForce "/b_bluetooth/d_mediaserver/e_speakerserver/c_spotify";
+      a_main.location = lib.mkForce "/b_bluetooth/d_mediaserver/e_speakerserver/c_spotify";
       # mediaserver = {
       #   type = "pipe";
       #   location = "/run/snapserver/partymusic";
