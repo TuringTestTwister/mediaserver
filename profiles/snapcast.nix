@@ -20,20 +20,21 @@ in
     codec = "flac";
     sampleFormat = "44100:16:2";
     streams = {
-      Main = {
+      # Nix writes these in alphabetical order, and the first one is the default, hence the prefixes
+      a_main = {
         type = "meta";
         ## Prioritize bluetooth over spotify
-        location = "/Bluetooth/Spotify";
+        location = "/b_bluetooth/c_spotify";
       };
-      Spotify = {
-        type = "pipe";
-        location = "/run/snapserver/spotify";
-      };
-      Bluetooth = {
+      b_bluetooth = {
         type = "pipe";
         location = "/run/snapserver/bluetooth";
         ## Per stream sampleformat doesn't seem to work
         # sampleFormat = "48000:24:2";
+      };
+      c_spotify = {
+        type = "pipe";
+        location = "/run/snapserver/spotify";
       };
     };
     openFirewall = true;
