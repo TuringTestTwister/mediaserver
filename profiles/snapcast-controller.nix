@@ -53,7 +53,7 @@
   #   ];
   #   script = ''
   #     # @TODO: try this with hostname instead, or do a lookup before running
-  #     snapclient --logsink null -i 4 -h 10.0.0.29 --player file > /run/snapserver/partymusic
+  #     snapclient --logsink null --instance 2 -h 10.0.0.29 --player file > /run/snapserver/partymusic
   #   '';
   #   serviceConfig = {
   #     User = hostParams.username;
@@ -73,7 +73,7 @@
     ];
     script = ''
       # @TODO: try this with hostname instead, or do a lookup before running
-      snapclient --logsink null -i 4 -h 10.0.0.32 --player file > /run/snapserver/mediaserver
+      snapclient --logsink null --instance 3 -h 10.0.0.32 --player file > /run/snapserver/mediaserver
     '';
     serviceConfig = {
       User = hostParams.username;
@@ -93,7 +93,7 @@
     ];
     script = ''
       # @TODO: try this with hostname instead, or do a lookup before running
-      snapclient --logsink null -i 4 -h 10.0.0.28 --player file > /run/snapserver/speakerserver
+      snapclient --logsink null --instance 4 -h 10.0.0.28 --player file > /run/snapserver/speakerserver
     '';
     serviceConfig = {
       User = hostParams.username;
