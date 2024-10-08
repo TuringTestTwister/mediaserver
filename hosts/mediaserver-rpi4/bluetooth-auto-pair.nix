@@ -21,4 +21,19 @@ in
       ${bluetooth-auto-pair}/bin/bluetooth-auto-pair
     '';
   };
+
+  hardware.bluetooth = {
+    settings = {
+      General = {
+        # Pairing always on
+        AlwaysPairable = "true";
+        # Don't disable discoverability after timeout
+	DiscoverableTimeout = "0";
+	# Faster but uses more power
+	FastConnectable = "true";
+	# Allow repairing of existing devices
+	JustWorksRepairing = "always";
+      };
+    };
+  };
 }

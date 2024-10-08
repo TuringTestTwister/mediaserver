@@ -89,10 +89,10 @@ class Agent(dbus.service.Object):
 					in_signature="ou", out_signature="")
 	def RequestConfirmation(self, device, passkey):
 		print("RequestConfirmation (%s, %06d)" % (device, passkey))
-		confirm = ask("Confirm passkey (yes/no): ")
-		if (confirm == "yes"):
-			set_trusted(device)
-			return
+		# confirm = ask("Confirm passkey (yes/no): ")
+		# if (confirm == "yes"):
+		set_trusted(device)
+		return
 		raise Rejected("Passkey doesn't match")
 
 	@dbus.service.method(AGENT_INTERFACE,
@@ -132,8 +132,8 @@ if __name__ == '__main__':
 
 	bus = dbus.SystemBus()
 
-	# capability = "KeyboardDisplay"
-	capability = "NoInputNoOutput"
+	capability = "KeyboardDisplay"
+	# capability = "NoInputNoOutput"
 
 	parser = OptionParser()
 	parser.add_option("-i", "--adapter", action="store",

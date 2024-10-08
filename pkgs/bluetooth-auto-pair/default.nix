@@ -48,7 +48,7 @@ let
     pairable on
     EOF
  
-    ${bluetooth-simple-agent}/bin/bluetooth-simple-agent
+    ${bluetooth-simple-agent}/bin/bluetooth-simple-agent -c NoInputNoOutput
   '';
 in
 pkgs.stdenv.mkDerivation {
