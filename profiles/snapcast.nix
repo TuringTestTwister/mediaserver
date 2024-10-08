@@ -151,6 +151,5 @@ in
       User = hostParams.username;
     };
   };
-
 }
 

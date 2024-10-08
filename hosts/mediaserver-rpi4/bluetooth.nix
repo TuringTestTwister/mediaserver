@@ -1,5 +1,9 @@
 { lib, pkgs, hostParams, ... }:
 {
+  imports = [
+    ./bluetooth-auto-pair.nix
+  ];
+
   environment.systemPackages = with pkgs; [
     bluez-alsa
   ];
@@ -16,8 +20,4 @@
   };
 
   services.blueman.enable = true;
-
-  imports = [
-    # ./bluetooth-auto-pair.nix
-  ];
 }
