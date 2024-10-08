@@ -4,7 +4,8 @@
     bluez-tools
   ];
 
-  systemd.services.bluetooth-auto-pair = {
+  systemd.services.bluetooth-auto-pair = 
+  {
     wantedBy = [
       "bluetooth.service"
     ];
@@ -16,11 +17,16 @@
     ];
     serviceConfig = {
       Type = "simple";
-      ExecStart = ''
-        /bin/sh -c '${pkgs.coreutils}/bin/yes | ${pkgs.bluez-tools}/bin/bt-agent -c NoInputNoOutput'
+      ExecStart = pkgs.writeShellScript "exec-start" ''
+        ${pkgs.bluez}/bin/bluetoothctl <<EOF
+        discoverable on
+        pairable on
+        EOF
+   
+        ${pkgs.coreutils}/bin/yes | ${pkgs.bluez-tools}/bin/bt-agent -c NoInputNoOutput
       '';
-      ExecStop = ''
-        /bin/sh -c kill -s SIGINT $MAINPID
+      ExecStop = pkgs.writeShellScript "exec-stop" ''
+        kill -s SIGINT $MAINPID
       '';
       Restart = "on-failure";
     };
