@@ -5,6 +5,8 @@ TODOS
   * currently need forceHeadphoneOutput param hack
   * TODO: How to reset ALSA settings - currently partymusic's default output is off for ALSA
 * TODO: auto-select a_main output. Seems to be defaulting to b_bluetooth
+* TODO: Remove bluetooth-auto-pair package. Not needed
+  * Back it up first though, as it's good sample code for getting the GObject crap to work
 * Set up bluez simple-agent for auto pairing and trust
   * https://github.com/pauloborges/bluez/blob/master/test/simple-agent
   * https://stackoverflow.com/questions/30233442/automate-bluetooth-pairing-trusting-in-bluez5

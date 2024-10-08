@@ -1,10 +1,7 @@
 { lib, pkgs, hostParams, ... }:
-let
-  bluetooth-auto-pair = pkgs.callPackage ../../pkgs/bluetooth-auto-pair {};
-in
 {
   environment.systemPackages = with pkgs; [
-    bluetooth-auto-pair
+    bluez-tools
   ];
 
   systemd.services.bluetooth-auto-pair = {
@@ -17,9 +14,16 @@ in
     bindsTo = [
       "bluetooth.service"
     ];
-    script = ''
-      ${bluetooth-auto-pair}/bin/bluetooth-auto-pair
-    '';
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = ''
+        /bin/sh -c '${pkgs.coreutils}/bin/yes | ${pkgs.bluez-tools}/bin/bt-agent -c NoInputNoOutput'
+      '';
+      ExecStop = ''
+        /bin/sh -c kill -s SIGINT $MAINPID
+      '';
+      Restart = "on-failure";
+    };
   };
 
   hardware.bluetooth = {
