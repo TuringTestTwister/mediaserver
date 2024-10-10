@@ -14,5 +14,12 @@
   snapcastLatency = "0";
   snapcastServerHost = "::1";
   controller = false;
+  # move-sink-input is disabled, so if a client was started with the wrong sink, it will stick across restarts
+  # This setting will force it to use the headphone output.
+  # To fix it so this setting is not needed:
+  #   systemctl stop pulseaudio
+  #   sudo rm -rf /var/lib/pulse
+  #   systemctl start pulseaudio
+  # See: https://unix.stackexchange.com/questions/525070/pulseaudio-not-using-default-sink
   forceHeadphoneOutput = false;
 }

@@ -3,7 +3,14 @@ TODOS
 
 * HACK: figure out how to get snapclient to connect to proper default automatically
   * currently need forceHeadphoneOutput param hack
-  * TODO: How to reset ALSA settings - currently partymusic's default output is off for ALSA
+  * SOLUTION: default audio sink is stored in DB in /var/lib/pulse, and changing default sink
+              is only used for new applications, not existing ones, since the module for moving
+              sink inputs is disabled
+  * How to reset ALSA settings - currently partymusic's default output is off for ALSA
+    * systemctl stop pulseaudio
+    * rm -rf /var/lib/pulse
+    * systemctl restart pulseaudio
+  * TODO: Add to README
 * TODO: auto-select a_main output. Seems to be defaulting to b_bluetooth
 * TODO: Remove bluetooth-auto-pair package. Not needed
   * Back it up first though, as it's good sample code for getting the GObject crap to work
