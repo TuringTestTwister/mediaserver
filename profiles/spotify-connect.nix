@@ -12,8 +12,18 @@ let
   zeroconf-args = "--zeroconf-port=${toString zeroconf-port}";
   ## Allows for seeing device across the internet
   # options = "--username <USERNAME> --password <PASSWORD>";
+  # debug-args = "--verbose";
+  debug-args = "--verbose";
 in
 {
+  imports = [
+    ../overlays/librespot-0.5.0.nix
+  ];
+
+  environment.systemPackages = [
+    pkgs.librespot
+  ];
+
   systemd.services = {
     spotify-connect = {
       description = "Spotify Connect Daemon";
@@ -29,7 +39,7 @@ in
         PermissionsStartOnly = true;
         Restart = "always";
         RestartSec = 10;
-        ExecStart = "${pkgs.librespot}/bin/librespot --name '${device-name}' ${zeroconf-args} ${backend-args} --bitrate ${bitrate} ${cache-args} ${volume-args} --verbose";
+        ExecStart = "${pkgs.librespot}/bin/librespot --name '${device-name}' ${zeroconf-args} ${backend-args} --bitrate ${bitrate} ${cache-args} ${volume-args} ${debug-args}";
       };
     };
   };
