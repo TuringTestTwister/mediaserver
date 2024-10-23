@@ -1,6 +1,7 @@
 TODOS
 =====
 
+* TODO: Connecting second bluetooth device connects device directly to ALSA output, no module-loopback
 * HACK: figure out how to get snapclient to connect to proper default automatically
   * currently need forceHeadphoneOutput param hack
   * SOLUTION: default audio sink is stored in DB in /var/lib/pulse, and changing default sink
