@@ -135,7 +135,7 @@
     ];
     script = ''
       # @TODO: try this with hostname instead, or do a lookup before running
-      snapclient --logsink null --instance 4 -h 10.0.0.28 --player file > /run/snapserver/x1c
+      snapclient --logsink null --instance 5 -h 10.0.0.57 --player file > /run/snapserver/x1c
     '';
     serviceConfig = {
       User = hostParams.username;
@@ -155,7 +155,7 @@
     ];
     script = ''
       # @TODO: try this with hostname instead, or do a lookup before running
-      snapclient --logsink null --instance 4 -h 10.0.0.28 --player file > /run/snapserver/antikythera
+      snapclient --logsink null --instance 6 -h 10.0.0.59 --player file > /run/snapserver/antikythera
     '';
     serviceConfig = {
       User = hostParams.username;
