@@ -65,7 +65,7 @@
 
       [jellyfin]
 
-      hostname = jellyfin.localdomain
+      hostname = jellyfin.lan
       username = changeme
       password = changeme
       # user_id = userid (Optional: Needed for token authentication)

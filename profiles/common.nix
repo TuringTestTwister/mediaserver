@@ -202,7 +202,7 @@
   # Networking
   # --------------------------------------------------------------------------------------
 
-  networking.search = [ "localdomain" ];
+  networking.search = [ "lan" ];
 
   networking.firewall.allowedTCPPorts = [
     2022    # eternal terminal
