@@ -220,15 +220,15 @@
   programs.mosh.enable = true;
 
   # environment.variables.EDITOR = "neovim";
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-  };
+  # programs.neovim = {
+  #   enable = true;
+  #   defaultEditor = true;
+  # };
 
-  environment.interactiveShellInit = ''
-    alias vi='nvim'
-    alias vim='nvim'
-  '';
+  # environment.interactiveShellInit = ''
+  #   alias vi='nvim'
+  #   alias vim='nvim'
+  # '';
 
   environment.systemPackages = with pkgs; [
     at-spi2-core
@@ -268,7 +268,7 @@
     jhead
     minicom
     neofetch
-    neovim
+    # neovim
     unstable.nil
     nix-index
     openssl

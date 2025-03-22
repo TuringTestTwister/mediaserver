@@ -20,6 +20,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixvim-config.url = "git+https://git.homefree.host/homefree/nixvim-config";
+
     nix-editor.url = "github:vlinkz/nix-editor";
 
     u-boot-src = {
@@ -89,6 +91,12 @@
           ./hosts/mediaserver-rpi4/boot.nix
           ./hosts/mediaserver-rpi4/bluetooth.nix
           ./hosts/mediaserver-rpi4/sound.nix
+          inputs.nixvim-config.nixosModules.default
+          {
+            nixvim-config.enable = true;
+            nixvim-config.enable-ai = false;
+            nixvim-config.enable-startify-cowsay = false;
+          }
         ];
         specialArgs = {
           inherit inputs;

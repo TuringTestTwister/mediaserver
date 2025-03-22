@@ -3,7 +3,7 @@
   # @TODO: make list of hosts configured from hostParams
   services.snapserver = {
     streams = {
-      a_main.location = lib.mkForce "/b_bluetooth/d_mediaserver/e_speakerserver/f_x1c/g_antikythera/c_spotify";
+      a_main.location = lib.mkForce "/b_bluetooth/d_mediaserver/e_speakerserver/f_x1c/g_antikythera/g_x1c_dock/c_spotify";
       # mediaserver = {
       #   type = "pipe";
       #   location = "/run/snapserver/partymusic";
@@ -40,6 +40,17 @@
       f_x1c = {
         type = "pipe";
         location = "/run/snapserver/x1c";
+        query = {
+          mode = "create";
+          dryout_ms = "2000";
+          send_silence = "false";
+          idle_threshold = "5000";
+          silence_threshold_percent = "1.0";
+        };
+      };
+      g_x1c_dock = {
+        type = "pipe";
+        location = "/run/snapserver/x1c_dock";
         query = {
           mode = "create";
           dryout_ms = "2000";
@@ -156,6 +167,26 @@
     script = ''
       # @TODO: try this with hostname instead, or do a lookup before running
       snapclient --logsink null --instance 6 -h 10.0.0.59 --player file > /run/snapserver/antikythera
+    '';
+    serviceConfig = {
+      User = hostParams.username;
+    };
+  };
+
+  systemd.services.snapclient-x1c-dock = {
+    wantedBy = [
+      "pulseaudio.service"
+    ];
+    after = [
+      "pulseaudio.service"
+    ];
+    path = with pkgs; [
+      pulseaudio
+      snapcast
+    ];
+    script = ''
+      # @TODO: try this with hostname instead, or do a lookup before running
+      snapclient --logsink null --instance 7 -h 10.0.0.45 --player file > /run/snapserver/x1c_dock
     '';
     serviceConfig = {
       User = hostParams.username;
