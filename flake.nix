@@ -91,11 +91,17 @@
           ./hosts/mediaserver-rpi4/boot.nix
           ./hosts/mediaserver-rpi4/bluetooth.nix
           ./hosts/mediaserver-rpi4/sound.nix
-          inputs.nixvim-config.nixosModules.default
+          # inputs.nixvim-config.nixosModules.default
+          # {
+          #   nixvim-config.enable = true;
+          #   nixvim-config.enable-ai = false;
+          #   nixvim-config.enable-startify-cowsay = false;
+          # }
           {
-            nixvim-config.enable = true;
-            nixvim-config.enable-ai = false;
-            nixvim-config.enable-startify-cowsay = false;
+            programs.neovim = {
+              enable = true;
+              defaultEditor = true;
+            };
           }
         ];
         specialArgs = {

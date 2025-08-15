@@ -55,6 +55,7 @@
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "arm.cachix.org-1:5BZ2kjoL1q6nWhlnrbAl+G7ThY7+HaBRD9PZzqZkbnM="
       ];
+      download-buffer-size = 524288000;
     };
     # Additional text appended to nix.conf
     extraOptions =
