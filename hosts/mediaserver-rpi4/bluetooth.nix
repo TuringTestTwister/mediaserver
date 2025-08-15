@@ -1,7 +1,7 @@
 { lib, pkgs, hostParams, ... }:
 {
   imports = [
-    ./bluetooth-auto-pair.nix
+    # ./bluetooth-auto-pair.nix
   ];
 
   environment.systemPackages = with pkgs; [

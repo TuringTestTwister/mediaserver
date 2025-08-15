@@ -4,10 +4,7 @@
 { inputs, lib, pkgs, ... }:
 
 {
-  boot.initrd.availableKernelModules = [ "xhci_pci" "usbhid" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
+  # boot.initrd.availableKernelModules = [ "xhci_pci" "usbhid" ];
 
   ## Fixes bluetooth stuttering due to wifi interference by only allowing 5Ghz Wifi, which does not interfer with Bluetooth
   ## https://github.com/raspberrypi/linux/issues/5522
@@ -15,23 +12,21 @@
     options cfg80211 ieee80211_regdom="US"
     options brcmfmac roamoff=1
   '';
-  hardware.firmware = with pkgs; [ 
+  hardware.firmware = with pkgs; [
     wireless-regdb
     firmwareLinuxNonfree
     raspberrypiWirelessFirmware
   ];
-
-  # Enable GPU acceleration
-  hardware.raspberry-pi."4".fkms-3d.enable = true;
-
+  #
+  # # Enable GPU acceleration
+  # hardware.raspberry-pi."4".fkms-3d.enable = true;
+  #
   hardware.enableRedistributableFirmware = true;
 
   fileSystems."/" =
     { device = "/dev/disk/by-label/NIXOS_SD";
       fsType = "ext4";
     };
-
-  swapDevices = [ ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
@@ -41,17 +36,19 @@
   # networking.interfaces.end0.useDHCP = lib.mkDefault true;
   # networking.interfaces.wlan0.useDHCP = lib.mkDefault true;
 
-  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+  nixpkgs = {
+    hostPlatform = lib.mkDefault "aarch64-linux";
+  };
 
   services.dbus.enable = true;
 
-  ## make sure audio is enabled at start
-  boot.loader.raspberryPi.firmwareConfig = ''
-    dtparam=audio=on
-  '';
-
-  imports = [
-    # Makes bluetooth controller available
-    ./bluetooth-device-tree.nix
-  ];
+  # ## make sure audio is enabled at start
+  # boot.loader.raspberryPi.firmwareConfig = ''
+  #   dtparam=audio=on
+  # '';
+  #
+  # imports = [
+  #   # Makes bluetooth controller available
+  #   ./bluetooth-device-tree.nix
+  # ];
 }

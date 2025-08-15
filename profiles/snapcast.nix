@@ -94,7 +94,7 @@ in
     };
   };
 
-  hardware.pulseaudio = {
+  services.pulseaudio = {
     extraConfig = ''
       # Don't switch sources on detection
       unload-module module-switch-on-port-available

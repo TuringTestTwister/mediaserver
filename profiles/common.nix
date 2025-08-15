@@ -30,7 +30,7 @@
     nixPath = [ "nixpkgs=${inputs.nixpkgs}" "nixos-config=/home/${hostParams.username}/nixcfg" ];
 
     # Which package collection to use system-wide.
-    package = pkgs.nixFlakes;
+    package = pkgs.nixVersions.latest;
 
     settings = {
       # sets up an isolated environment for each build process to improve reproducibility.
@@ -121,7 +121,6 @@
   # --------------------------------------------------------------------------------------
 
   nixpkgs = {
-    hostPlatform = system;
     config = {
       ## Allow proprietary packages.
       allowUnfree = true;
@@ -139,14 +138,6 @@
       };
     };
   };
-
-  # --------------------------------------------------------------------------------------
-  # Boot / Kernel
-  # --------------------------------------------------------------------------------------
-
-  # Disables writing to Nix store by mounting read-only. "false" should only be used as a last resort.
-  # Nix mounts read-write automatically when it needs to write to it.
-  boot.readOnlyNixStore = true;
 
   # --------------------------------------------------------------------------------------
   # Services

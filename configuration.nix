@@ -2,7 +2,6 @@
 
 {
   imports = [
-    inputs.nixos-generators.nixosModules.all-formats
     # ./modules/network-manager-wireless.nix
     ./profiles/common.nix
     ./profiles/mopidy.nix
