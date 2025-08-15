@@ -106,3 +106,10 @@ bluetoothctl
   # answer yes to everything on phone and mediaserver
   trust
 ```
+
+### Seeing what the config.txt firmware file will be before rebuilding
+
+```
+nix build '.#nixosConfigurations.mediaserver-rpi4.config.hardware.raspberry-pi.config-output'
+nix eval '.#nixosConfigurations.mediaserver-rpi4.config.hardware.raspberry-pi.config-output' --raw
+```
