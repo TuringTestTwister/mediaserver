@@ -31,24 +31,25 @@
       ./configuration.nix
       ./hosts/mediaserver-rpi4/hardware-configuration.nix
       ./hosts/mediaserver-rpi4/sound.nix
+      ./hosts/mediaserver-rpi4/bluetooth.nix
 
-      #j @TODO: Identify nixvim performance bottlenecks
-      # inputs.nixvim-config.nixosModules.default
-      # {
-      #   nixvim-config.enable = true;
-      #   nixvim-config.enable-ai = false;
-      #   nixvim-config.enable-startify-cowsay = false;
-      # }
+      # @TODO: Identify nixvim performance bottlenecks
+      inputs.nixvim-config.nixosModules.default
       {
-        programs.neovim = {
-          enable = true;
-          defaultEditor = true;
-        };
+        nixvim-config.enable = true;
+        nixvim-config.enable-ai = false;
+        nixvim-config.enable-startify-cowsay = false;
+        nixvim-config.disable-treesitter = true;
       }
+      # {
+      #   programs.neovim = {
+      #     enable = true;
+      #     defaultEditor = true;
+      #   };
+      # }
 
       ## Are these still needed?
       # ./hosts/mediaserver-rpi4/boot.nix
-      # ./hosts/mediaserver-rpi4/bluetooth.nix
     ];
   in
   {

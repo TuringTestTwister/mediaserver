@@ -223,11 +223,13 @@
   # '';
 
   environment.systemPackages = with pkgs; [
+    alsa-utils
     at-spi2-core
     backblaze-b2
     bashmount
     bfg-repo-cleaner
     bind
+    btop
     ccze             # readable parsed system logs
     ## Not supported on raspberry pi
     # cpufrequtils
@@ -259,10 +261,12 @@
     iwd
     jhead
     minicom
+    mpv
     neofetch
     # neovim
     unstable.nil
     nix-index
+    nix-prefetch-github
     openssl
     # openjdk16-bootstrap
     p7zip

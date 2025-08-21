@@ -3,7 +3,7 @@
   # @TODO: make list of hosts configured from hostParams
   services.snapserver = {
     streams = {
-      a_main.location = lib.mkForce "/b_bluetooth/d_mediaserver/e_speakerserver/f_p16/g_antikythera/g_work_dock/c_spotify";
+      a_main.location = lib.mkForce "/b_bluetooth/d_mediaserver/e_speakerserver/f_p16/g_antikythera/g_antikytheradock/g_work_dock/c_spotify";
       # mediaserver = {
       #   type = "pipe";
       #   location = "/run/snapserver/partymusic";
@@ -62,6 +62,17 @@
       g_antikythera = {
         type = "pipe";
         location = "/run/snapserver/antikythera";
+        query = {
+          mode = "create";
+          dryout_ms = "2000";
+          send_silence = "false";
+          idle_threshold = "5000";
+          silence_threshold_percent = "1.0";
+        };
+      };
+      g_antikytheradock = {
+        type = "pipe";
+        location = "/run/snapserver/antikytheradock";
         query = {
           mode = "create";
           dryout_ms = "2000";
@@ -167,6 +178,26 @@
     script = ''
       # @TODO: try this with hostname instead, or do a lookup before running
       snapclient --logsink null --instance 6 -h 10.0.0.59 --player file > /run/snapserver/antikythera
+    '';
+    serviceConfig = {
+      User = hostParams.username;
+    };
+  };
+
+  systemd.services.snapclient-antikythera-dock = {
+    wantedBy = [
+      "pulseaudio.service"
+    ];
+    after = [
+      "pulseaudio.service"
+    ];
+    path = with pkgs; [
+      pulseaudio
+      snapcast
+    ];
+    script = ''
+      # @TODO: try this with hostname instead, or do a lookup before running
+      snapclient --logsink null --instance 6 -h 10.0.0.46 --player file > /run/snapserver/antikytheradock
     '';
     serviceConfig = {
       User = hostParams.username;
