@@ -27,7 +27,7 @@
     hostParams = import ./host-params.nix {};
     raspi-modules = [
       "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-      # nixos-hardware.nixosModules.raspberry-pi-4
+      nixos-hardware.nixosModules.raspberry-pi-4
       ./configuration.nix
       ./hosts/mediaserver-rpi4/hardware-configuration.nix
       ./hosts/mediaserver-rpi4/sound.nix
@@ -49,7 +49,7 @@
       # }
 
       ## Are these still needed?
-      # ./hosts/mediaserver-rpi4/boot.nix
+      ./hosts/mediaserver-rpi4/boot.nix
     ];
   in
   {

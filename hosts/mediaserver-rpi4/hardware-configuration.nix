@@ -49,6 +49,6 @@
   #
   imports = [
     # Makes bluetooth controller available
-    # ./bluetooth-device-tree.nix
+    ./bluetooth-device-tree.nix
   ];
 }
