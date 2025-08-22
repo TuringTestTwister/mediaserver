@@ -47,8 +47,8 @@
   #   dtparam=audio=on
   # '';
   #
-  # imports = [
-  #   # Makes bluetooth controller available
-  #   ./bluetooth-device-tree.nix
-  # ];
+  imports = [
+    # Makes bluetooth controller available
+    # ./bluetooth-device-tree.nix
+  ];
 }
