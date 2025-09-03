@@ -11,16 +11,15 @@
            buildRustPackage = args: final.rustPlatform.buildRustPackage (args // rec {
              ## dev branch which addresses issue with 500 errors
              # https://github.com/librespot-org/librespot/issues/1527
-             version = "78ce118d32912adfb2705481f69c83df6a88211f";
+             version = "v0.7.1";
              src = final.fetchFromGitHub {
                owner = "librespot-org";
                repo = "librespot";
-               rev = "v${version}";
-               # sha256 = "sha256-/YMICsrUMYqiL5jMlb5BbZPlHfL9btbWiv/Kt2xhRW4=";
-               hash = "sha256-4psjwp2y70yf81wuENPXfSnsYCbNKbDM/pPWZbW3WBU=";
+               rev = "${version}";
+               hash = "sha256-gBMzvQxmy+GYzrOKWmbhl56j49BK8W8NYO2RrvS4mWI=";
              };
              buildFeatures = (args.buildFeatures or []) ++ [ "native-tls" ];
-             cargoHash = "sha256-6y/KE19eqUNcn23v/w0GBDa5Sivn1P0ZgPGLdYRreLg=";
+             cargoHash = "sha256-PiGIxMIA/RL+YkpG1f46zyAO5anx9Ii+anKrANCM+rk=";
            });
          };
        };

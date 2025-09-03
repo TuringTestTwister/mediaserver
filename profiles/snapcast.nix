@@ -62,7 +62,8 @@ in
       snapcast
     ];
     script = ''
-      snapclient ${snapclientSoundcardParam} --instance 1 --soundcard 7 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # snapclient ${snapclientSoundcardParam} --instance 1 --soundcard 7 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      snapclient ${snapclientSoundcardParam} --instance 1 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
