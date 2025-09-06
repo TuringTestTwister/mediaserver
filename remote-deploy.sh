@@ -8,6 +8,9 @@ FLAKE_DIR="${FLAKE_DIR:-$(pwd)}"
 REMOTE_USER="${REMOTE_USER:-root}"
 REMOTE_TEMP_DIR="/tmp/nixos-deploy-$$"
 
+# SSH configuration - supports both password and key authentication
+SSH_BASE_CMD="ssh -o PasswordAuthentication=yes -o PubkeyAuthentication=yes -o ConnectTimeout=10"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -130,12 +133,13 @@ if [[ "$DRY_RUN" == "true" ]]; then
 fi
 
 # Test SSH connectivity
-log_info "Testing SSH connectivity..."
-if ! ssh -o ConnectTimeout=10 -o BatchMode=yes "$REMOTE_HOST" true 2>/dev/null; then
+log_info "Testing SSH connectivity to $REMOTE_HOST..."
+log_info "Note: You may be prompted for a password if SSH keys are not configured"
+if ! $SSH_BASE_CMD "$REMOTE_HOST" true; then
     log_error "Cannot connect to $REMOTE_HOST via SSH"
     log_error "Please ensure:"
     log_error "  - Host is reachable"
-    log_error "  - SSH key authentication is set up"
+    log_error "  - SSH key authentication is set up OR password authentication is enabled"
     log_error "  - User $REMOTE_USER exists and has sudo privileges"
     exit 1
 fi
@@ -206,6 +210,9 @@ COPY_START=$(date +%s)
 if [[ "$DRY_RUN" == "true" ]]; then
     log_info "Would run: nix-copy-closure --to '$REMOTE_HOST' '$SYSTEM_PATH'"
 else
+    # Set SSH command for nix-copy-closure using NIX_SSHOPTS
+    export NIX_SSHOPTS="-o PasswordAuthentication=yes -o PubkeyAuthentication=yes -o ConnectTimeout=30"
+
     if ! nix-copy-closure --to "$REMOTE_HOST" "$SYSTEM_PATH"; then
         log_error "Failed to copy closure to remote host"
         exit 1
@@ -224,7 +231,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
 else
     # Create temporary directory
     log_info "Creating temporary directory on remote host..."
-    if ! ssh "$REMOTE_HOST" "mkdir -p '$REMOTE_TEMP_DIR' && chmod 700 '$REMOTE_TEMP_DIR'"; then
+    if ! $SSH_BASE_CMD "$REMOTE_HOST" "mkdir -p '$REMOTE_TEMP_DIR' && chmod 700 '$REMOTE_TEMP_DIR'"; then
         log_error "Failed to create temporary directory on remote host"
         exit 1
     fi
@@ -257,36 +264,36 @@ echo "System activation completed successfully"
 EOF
 )
 
-    if ! printf '%s\n' "$ACTIVATION_SCRIPT" | ssh "$REMOTE_HOST" "cat > '$REMOTE_TEMP_DIR/activate.sh' && chmod +x '$REMOTE_TEMP_DIR/activate.sh'"; then
+    if ! printf '%s\n' "$ACTIVATION_SCRIPT" | $SSH_BASE_CMD "$REMOTE_HOST" "cat > '$REMOTE_TEMP_DIR/activate.sh' && chmod +x '$REMOTE_TEMP_DIR/activate.sh'"; then
         log_error "Failed to upload activation script"
-        ssh "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
+        $SSH_BASE_CMD "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
         exit 1
     fi
 
     # Verify script was created
-    if ! ssh "$REMOTE_HOST" "test -f '$REMOTE_TEMP_DIR/activate.sh' && test -x '$REMOTE_TEMP_DIR/activate.sh'"; then
+    if ! $SSH_BASE_CMD "$REMOTE_HOST" "test -f '$REMOTE_TEMP_DIR/activate.sh' && test -x '$REMOTE_TEMP_DIR/activate.sh'"; then
         log_error "Activation script was not created properly"
-        ssh "$REMOTE_HOST" "ls -la '$REMOTE_TEMP_DIR/'" || true
-        ssh "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
+        $SSH_BASE_CMD "$REMOTE_HOST" "ls -la '$REMOTE_TEMP_DIR/'" || true
+        $SSH_BASE_CMD "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
         exit 1
     fi
 
     # Run activation script
     log_info "Running activation script..."
-    if ssh "$REMOTE_HOST" "cd '$REMOTE_TEMP_DIR' && sudo bash ./activate.sh '$SYSTEM_PATH'"; then
+    if $SSH_BASE_CMD "$REMOTE_HOST" "cd '$REMOTE_TEMP_DIR' && sudo bash ./activate.sh '$SYSTEM_PATH'"; then
         log_success "System activation completed successfully"
     else
         log_error "System activation failed"
         # Show some debug info
         log_info "Debug information:"
-        ssh "$REMOTE_HOST" "ls -la '$REMOTE_TEMP_DIR/'" || true
-        ssh "$REMOTE_HOST" "cat '$REMOTE_TEMP_DIR/activate.sh'" || true
-        ssh "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
+        $SSH_BASE_CMD "$REMOTE_HOST" "ls -la '$REMOTE_TEMP_DIR/'" || true
+        $SSH_BASE_CMD "$REMOTE_HOST" "cat '$REMOTE_TEMP_DIR/activate.sh'" || true
+        $SSH_BASE_CMD "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
         exit 1
     fi
 
     # Cleanup temporary directory
-    ssh "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || log_warning "Failed to cleanup temporary directory"
+    $SSH_BASE_CMD "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || log_warning "Failed to cleanup temporary directory"
 fi
 
 # Optional reboot
@@ -295,7 +302,7 @@ if [[ "$REBOOT_AFTER" == "true" ]]; then
     if [[ "$DRY_RUN" == "true" ]]; then
         log_info "Would reboot remote system"
     else
-        ssh "$REMOTE_HOST" "sudo reboot" || log_info "Reboot initiated (connection lost as expected)"
+        $SSH_BASE_CMD "$REMOTE_HOST" "sudo reboot" || log_info "Reboot initiated (connection lost as expected)"
     fi
 fi
 
