@@ -20,6 +20,15 @@ build-image:
 build:
 	./build.sh
 
+remote:
+ifndef REMOTE_USER
+	$(error please set a remote user, e.g. "make remote REMOTE_USER=mediaserver REMOTE_HOST=mediaserver.lan")
+endif
+ifndef REMOTE_HOST
+	$(error please set a remote host, e.g. "make remote REMOTE_USER=mediaserver REMOTE_HOST=mediaserver.lan")
+endif
+	./remote-deploy.sh -u $(REMOTE_USER) $(REMOTE_HOST) mediaserver-rpi4
+
 run:
 	./run.sh
 

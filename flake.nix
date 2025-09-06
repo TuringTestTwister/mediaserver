@@ -34,19 +34,19 @@
       ./hosts/mediaserver-rpi4/bluetooth.nix
 
       # @TODO: Identify nixvim performance bottlenecks
-      inputs.nixvim-config.nixosModules.default
-      {
-        nixvim-config.enable = true;
-        nixvim-config.enable-ai = false;
-        nixvim-config.enable-startify-cowsay = false;
-        nixvim-config.disable-treesitter = true;
-      }
+      # inputs.nixvim-config.nixosModules.default
       # {
-      #   programs.neovim = {
-      #     enable = true;
-      #     defaultEditor = true;
-      #   };
+      #   nixvim-config.enable = true;
+      #   nixvim-config.enable-ai = false;
+      #   nixvim-config.enable-startify-cowsay = false;
+      #   nixvim-config.disable-treesitter = true;
       # }
+      {
+        programs.neovim = {
+          enable = true;
+          defaultEditor = true;
+        };
+      }
 
       ## Are these still needed?
       ./hosts/mediaserver-rpi4/boot.nix
@@ -63,7 +63,7 @@
           inherit hostParams;
         };
       };
-      mediaserver-rpi4-build = inputs.nixpkgs.lib.nixosSystem {
+      mediaserver-rpi4-cross-compile = inputs.nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         ## Add buildPlatform to cross-compile rather than use binfmt with qemu
         modules = raspi-modules ++ [

@@ -150,7 +150,7 @@
   services.fwupd.enable = true;
 
   # Setting to true will kill things like tmux on logout
-  services.logind.killUserProcesses = false;
+  services.logind.settings.Login.KillUserProcesses = false;
 
   # network locator e.g. scanners and printers
   services.avahi.enable = true;
