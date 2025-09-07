@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  hardware.pulseaudio = {
+  services.pulseaudio = {
     enable = true;
     # Add out-of-tree support for AAC, APTX, APTX-HD and LDAC
     package = pkgs.pulseaudioFull;

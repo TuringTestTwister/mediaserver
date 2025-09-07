@@ -62,6 +62,7 @@ in
       snapcast
     ];
     script = ''
+      # snapclient ${snapclientSoundcardParam} --instance 1 --soundcard 7 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
       snapclient ${snapclientSoundcardParam} --instance 1 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
     '';
     serviceConfig = {
@@ -94,7 +95,7 @@ in
     };
   };
 
-  hardware.pulseaudio = {
+  services.pulseaudio = {
     extraConfig = ''
       # Don't switch sources on detection
       unload-module module-switch-on-port-available

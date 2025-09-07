@@ -3,3 +3,4 @@ result
 *.qcow2
 *.img
 *.zst
+mediaserver-rpi4

@@ -8,4 +8,5 @@ then
     exit 1
 fi
 
+# sudo nixos-rebuild --max-jobs 1 switch --flake .#mediaserver-rpi4 -L
 sudo nixos-rebuild switch --flake .#mediaserver-rpi4 -L

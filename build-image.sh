@@ -12,19 +12,28 @@ build_image() {
     HOST=$1
     FORMAT=$2
     EXT=$3
-    nix build .#nixosConfigurations.${HOST}.config.formats.$FORMAT
+    nix build .#nixosConfigurations.${HOST}.config.system.build.$FORMAT
     mkdir -p ./build
-    mv ./result ./${HOST}.$EXT
-    rsync -L ./${HOST}.$EXT ./build/${HOST}.$EXT
+    if [ -e ./${HOST} ]; then
+        rm ./${HOST}
+    fi
+    mv ./result ./${HOST}
+    rsync -L ./${HOST}/sd-image/*.zst ./build/${HOST}.$EXT
     chmod 750 ./build/${HOST}.$EXT
 }
 
 # clear up disk space
 rm -rf ./build/*
 
-build_image mediaserver-rpi4 sd-aarch64-installer img.zst
+## binfmt qemu compile
+build_image mediaserver-rpi4 sdImage img.zst
+
+## Cross Compile
+## Much faster but sometimes fails. Run this first, then run qemu compile
+# build_image mediaserver-rpi4-build sdImage img.zst
+
 cd build
 zstd -d mediaserver-rpi4.img.zst
 rm mediaserver-rpi4.img.zst
-cd ..
-build_image mediaserver-x86 qcow qcow2
+# cd ..
+# build_image mediaserver-x86 qcow qcow2

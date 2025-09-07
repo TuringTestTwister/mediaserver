@@ -16,6 +16,10 @@ let
   debug-args = "--verbose";
 in
 {
+  imports = [
+    ../overlays/librespot-dev.nix
+  ];
+
   environment.systemPackages = [
     pkgs.librespot
   ];

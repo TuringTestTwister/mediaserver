@@ -30,7 +30,7 @@
     nixPath = [ "nixpkgs=${inputs.nixpkgs}" "nixos-config=/home/${hostParams.username}/nixcfg" ];
 
     # Which package collection to use system-wide.
-    package = pkgs.nixFlakes;
+    package = pkgs.nixVersions.latest;
 
     settings = {
       # sets up an isolated environment for each build process to improve reproducibility.
@@ -121,7 +121,6 @@
   # --------------------------------------------------------------------------------------
 
   nixpkgs = {
-    hostPlatform = system;
     config = {
       ## Allow proprietary packages.
       allowUnfree = true;
@@ -141,14 +140,6 @@
   };
 
   # --------------------------------------------------------------------------------------
-  # Boot / Kernel
-  # --------------------------------------------------------------------------------------
-
-  # Disables writing to Nix store by mounting read-only. "false" should only be used as a last resort.
-  # Nix mounts read-write automatically when it needs to write to it.
-  boot.readOnlyNixStore = true;
-
-  # --------------------------------------------------------------------------------------
   # Services
   # --------------------------------------------------------------------------------------
 
@@ -159,7 +150,7 @@
   services.fwupd.enable = true;
 
   # Setting to true will kill things like tmux on logout
-  services.logind.killUserProcesses = false;
+  services.logind.settings.Login.KillUserProcesses = false;
 
   # network locator e.g. scanners and printers
   services.avahi.enable = true;
@@ -232,11 +223,13 @@
   # '';
 
   environment.systemPackages = with pkgs; [
+    alsa-utils
     at-spi2-core
     backblaze-b2
     bashmount
     bfg-repo-cleaner
     bind
+    btop
     ccze             # readable parsed system logs
     ## Not supported on raspberry pi
     # cpufrequtils
@@ -268,10 +261,12 @@
     iwd
     jhead
     minicom
+    mpv
     neofetch
     # neovim
     unstable.nil
     nix-index
+    nix-prefetch-github
     openssl
     # openjdk16-bootstrap
     p7zip

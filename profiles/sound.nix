@@ -1,7 +1,8 @@
-{ config, pkgs, inputs, system, hostParams, ...}:
+{ pkgs, ...}:
 {
   environment.systemPackages = with pkgs; [
     ncpamixer
     pamix
+    pulsemixer
   ];
 }

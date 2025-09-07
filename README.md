@@ -95,7 +95,7 @@ sudo nmcli dev wifi connect <network-ssid> --ask
 sudo nmcli device set wlan0 autoconnect yes
 ```
 
-### Connecting bluetooth device
+### Connecting bluetooth input (e.g. phone or computer)
 
 ```
 bluetoothctl
@@ -105,4 +105,25 @@ bluetoothctl
   # pair from phone
   # answer yes to everything on phone and mediaserver
   trust
+```
+
+### Connecting bluetooth output (e.g. speaker)
+
+```
+bluetoothctl
+  power on
+  discoverable on
+  pairable on
+  scan on
+  pair <speaker address>
+  # May need to tap bluetooth button on speaker, e.g. Soundcore Boom 2
+  connect
+  trust
+```
+
+### Seeing what the config.txt firmware file will be before rebuilding
+
+```
+nix build '.#nixosConfigurations.mediaserver-rpi4.config.hardware.raspberry-pi.config-output'
+nix eval '.#nixosConfigurations.mediaserver-rpi4.config.hardware.raspberry-pi.config-output' --raw
 ```
