@@ -8,8 +8,12 @@ FLAKE_DIR="${FLAKE_DIR:-$(pwd)}"
 REMOTE_USER="${REMOTE_USER:-root}"
 REMOTE_TEMP_DIR="/tmp/nixos-deploy-$$"
 
-# SSH configuration - supports both password and key authentication
-SSH_BASE_CMD="ssh -o PasswordAuthentication=yes -o PubkeyAuthentication=yes -o ConnectTimeout=10"
+# SSH connection multiplexing configuration
+SSH_CONTROL_DIR="$HOME/.ssh/control"
+SSH_CONTROL_PATH="$SSH_CONTROL_DIR/%h_%p_%r"
+
+# SSH configuration - supports both password and key authentication with connection multiplexing
+SSH_BASE_CMD="ssh -o PasswordAuthentication=yes -o PubkeyAuthentication=yes -o ConnectTimeout=10 -o ControlMaster=auto -o ControlPersist=600 -o ControlPath=$SSH_CONTROL_PATH"
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,6 +21,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Global variable to track if SSH connection is established
+SSH_CONNECTION_ESTABLISHED=false
 
 # Logging functions
 log_info() {
@@ -34,6 +41,27 @@ log_warning() {
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
+
+# Setup SSH connection multiplexing
+setup_ssh_multiplexing() {
+    # Create control directory if it doesn't exist
+    if [[ ! -d "$SSH_CONTROL_DIR" ]]; then
+        mkdir -p "$SSH_CONTROL_DIR"
+        chmod 700 "$SSH_CONTROL_DIR"
+        log_info "Created SSH control directory: $SSH_CONTROL_DIR"
+    fi
+}
+
+# Cleanup SSH connection
+cleanup_ssh_connection() {
+    if [[ "$SSH_CONNECTION_ESTABLISHED" == "true" ]]; then
+        log_info "Cleaning up SSH connection..."
+        $SSH_BASE_CMD -O exit "$REMOTE_HOST" 2>/dev/null || true
+    fi
+}
+
+# Set up trap to cleanup SSH connection on script exit
+trap cleanup_ssh_connection EXIT
 
 usage() {
     cat << EOF
@@ -61,6 +89,9 @@ Examples:
   $SCRIPT_NAME myserver.lan myserver
   $SCRIPT_NAME -u admin 192.168.1.100 homelab
   $SCRIPT_NAME --dry-run --keep-result server.example.com production
+
+Note: This script uses SSH connection multiplexing to avoid repeated password prompts.
+The initial connection will be reused for all subsequent SSH commands.
 EOF
 }
 
@@ -132,9 +163,14 @@ if [[ "$DRY_RUN" == "true" ]]; then
     log_warning "DRY RUN MODE - No changes will be made"
 fi
 
-# Test SSH connectivity
+# Setup SSH connection multiplexing
+setup_ssh_multiplexing
+
+# Test SSH connectivity and establish master connection
 log_info "Testing SSH connectivity to $REMOTE_HOST..."
 log_info "Note: You may be prompted for a password if SSH keys are not configured"
+log_info "This password will be reused for all subsequent SSH commands in this session"
+
 if ! $SSH_BASE_CMD "$REMOTE_HOST" true; then
     log_error "Cannot connect to $REMOTE_HOST via SSH"
     log_error "Please ensure:"
@@ -143,7 +179,9 @@ if ! $SSH_BASE_CMD "$REMOTE_HOST" true; then
     log_error "  - User $REMOTE_USER exists and has sudo privileges"
     exit 1
 fi
-log_success "SSH connectivity verified"
+
+SSH_CONNECTION_ESTABLISHED=true
+log_success "SSH connectivity verified and master connection established"
 
 # Build the system locally
 log_info "Building NixOS configuration locally..."
@@ -210,8 +248,8 @@ COPY_START=$(date +%s)
 if [[ "$DRY_RUN" == "true" ]]; then
     log_info "Would run: nix-copy-closure --to '$REMOTE_HOST' '$SYSTEM_PATH'"
 else
-    # Set SSH command for nix-copy-closure using NIX_SSHOPTS
-    export NIX_SSHOPTS="-o PasswordAuthentication=yes -o PubkeyAuthentication=yes -o ConnectTimeout=30"
+    # Set SSH command for nix-copy-closure using NIX_SSHOPTS with connection multiplexing
+    export NIX_SSHOPTS="-o PasswordAuthentication=yes -o PubkeyAuthentication=yes -o ConnectTimeout=30 -o ControlMaster=auto -o ControlPersist=600 -o ControlPath=$SSH_CONTROL_PATH"
 
     if ! nix-copy-closure --to "$REMOTE_HOST" "$SYSTEM_PATH"; then
         log_error "Failed to copy closure to remote host"
