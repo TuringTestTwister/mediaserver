@@ -27,19 +27,37 @@
     mediaserver-inputs = inputs;
   in
   {
-    nixosModules = rec {
-      rpi4 = import ./default.nix {
-        inherit mediaserver-inputs;
+    nixosConfigurations = {
+      rpi4 = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        modules = [
+          ./rpi4.nix
+        ];
+        specialArgs = {
+          system = "aarch64-linux";
+          inherit mediaserver-inputs;
+        };
       };
-      default = rpi4;
-      rpi4-cross-compile = import ./rpi4-cross-compile.nix {
-        inherit mediaserver-inputs;
+      rpi4-cross-compile = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        modules = [
+          ./rpi4.nix
+          { nixpkgs.buildPlatform = "x86_64-linux"; }
+        ];
+        specialArgs = {
+          system = "aarch64-linux";
+          inherit mediaserver-inputs;
+        };
       };
-      mediaserver-x86 = import ./x86.nix {
-        inherit mediaserver-inputs;
+      x86 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        modules = [
+          ./x86.nix
+        ];
+        specialArgs = {
+          system = "x86_64-linux";
+          inherit mediaserver-inputs;
+        };
       };
     };
   };

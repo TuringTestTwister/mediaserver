@@ -9,9 +9,9 @@ in
     snapcast
   ];
 
-  imports = if config.mediaserver.controller then [
+  imports = [
     ./snapcast-controller.nix
-  ] else [];
+  ];
 
   ## Creates server for all clients (speakers) to connect to
   ## Provides streams from various sources, including pulse audio sink
@@ -21,18 +21,18 @@ in
     sampleFormat = "44100:16:2";
     streams = {
       # Nix writes these in alphabetical order, and the first one is the default, hence the prefixes
-      a_main = {
+      main = {
         type = "meta";
         ## Prioritize bluetooth over spotify
-        location = "/b_bluetooth/c_spotify";
+        location = "/bluetooth/spotify";
       };
-      b_bluetooth = {
+      bluetooth = {
         type = "pipe";
         location = "/run/snapserver/bluetooth";
         ## Per stream sampleformat doesn't seem to work
         # sampleFormat = "48000:24:2";
       };
-      c_spotify = {
+      spotify = {
         type = "pipe";
         location = "/run/snapserver/spotify";
       };
@@ -62,7 +62,6 @@ in
       snapcast
     ];
     script = ''
-      # snapclient ${snapclientSoundcardParam} --instance 1 --soundcard 7 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${toString config.mediaserver.snapcastLatency} -h ${config.mediaserver.snapcastServerHost}
       snapclient ${snapclientSoundcardParam} --instance 1 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${toString config.mediaserver.snapcastLatency} -h ${config.mediaserver.snapcastServerHost}
     '';
     serviceConfig = {

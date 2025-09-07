@@ -48,7 +48,7 @@
       description = "Wifi access point name";
     };
 
-    wifiPasssword = lib.mkOption {
+    wifiPassword = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description = "Wifi password";

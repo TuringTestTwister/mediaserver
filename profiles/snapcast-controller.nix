@@ -1,15 +1,10 @@
 { config, lib, pkgs, ... }:
 let
   # Stream of streams
-  main-location = "/bluetooth/" ++ lib.strings.concatStringsSep "/" (
+  main-location = "/bluetooth/spotify/" + (lib.strings.concatStringsSep "/" (
     lib.lists.map (stream: stream.name) config.mediaserver.snapcastControllerStreams
-  );
-  # mediaserver
-  # speakerserver
-  # p16
-  # work_dock
-  # antikythera
-  # antikytheradock
+  ));
+  # Individual remote streams
   streams = lib.listToAttrs (lib.imap0 (index: stream: {
     name = stream.name;
     value = {
@@ -24,7 +19,7 @@ let
       };
     };
   }) config.mediaserver.snapcastControllerStreams);
-  # snapclients that stream to pipes
+  # snapclients that direct remote streams to pipes
   services = lib.listToAttrs (lib.imap0 (index: stream: {
     name = "snapclient-${stream.name}";
     value = {
@@ -49,11 +44,11 @@ let
   }) config.mediaserver.snapcastControllerStreams);
 in
 {
-  services.snapserver = {
+  services.snapserver = if config.mediaserver.snapcastController then {
     streams = {
       main.location = lib.mkForce main-location;
     } // streams;
-  };
+  } else {};
 
-  systemd.services = services;
+  systemd.services = if config.mediaserver.snapcastController then services else {};
 }

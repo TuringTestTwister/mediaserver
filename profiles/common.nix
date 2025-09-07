@@ -104,7 +104,6 @@
     home  = "/home/${config.mediaserver.username}";
     description  = "Mediaserver User";
     extraGroups  = [ "wheel" "networkmanager" "audio" "pulse" "pulse-access" ];
-    # @TODO: Make this dynamic, not hard coded
     openssh.authorizedKeys.keys  = config.mediaserver.sshKeys;
     hashedPassword = config.mediaserver.hashedPassword;
   };
