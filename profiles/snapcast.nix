@@ -1,15 +1,15 @@
-{ lib, pkgs, hostParams, ... }:
+{ config, pkgs, ... }:
 let
   snapweb = pkgs.callPackage ../pkgs/snapweb {};
   # "-s sysdefault" selects "headphone" alsa device
-  snapclientSoundcardParam = if hostParams.forceHeadphoneOutput then "-s sysdefault" else "";
+  snapclientSoundcardParam = if config.mediaserver.forceHeadphoneOutput then "-s sysdefault" else "";
 in
 {
   environment.systemPackages = with pkgs; [
     snapcast
   ];
 
-  imports = if hostParams.controller then [
+  imports = if config.mediaserver.controller then [
     ./snapcast-controller.nix
   ] else [];
 
@@ -62,12 +62,12 @@ in
       snapcast
     ];
     script = ''
-      # snapclient ${snapclientSoundcardParam} --instance 1 --soundcard 7 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
-      snapclient ${snapclientSoundcardParam} --instance 1 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${hostParams.snapcastLatency} -h ${hostParams.snapcastServerHost}
+      # snapclient ${snapclientSoundcardParam} --instance 1 --soundcard 7 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${toString config.mediaserver.snapcastLatency} -h ${config.mediaserver.snapcastServerHost}
+      snapclient ${snapclientSoundcardParam} --instance 1 --player alsa:buffer_time=120,fragments=300 --sampleformat 44100:16:* --latency ${toString config.mediaserver.snapcastLatency} -h ${config.mediaserver.snapcastServerHost}
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
-      User = hostParams.username;
+      User = config.mediaserver.username;
     };
   };
 
@@ -91,7 +91,7 @@ in
     '';
     serviceConfig = {
       ## Needed to get access to pulseaudio
-      User = hostParams.username;
+      User = config.mediaserver.username;
     };
   };
 
@@ -129,7 +129,7 @@ in
     script = "${./pulseaudio-event-handler.sh}";
     serviceConfig = {
       ## Needed to get access to pulseaudio
-      User = hostParams.username;
+      User = config.mediaserver.username;
     };
   };
 }

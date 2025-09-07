@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, system, hostParams, ...}:
+{ config, pkgs, mediaserver-inputs, system, ...}:
 {
 
   # --------------------------------------------------------------------------------------
@@ -27,7 +27,7 @@
   # };
 
   nix = {
-    nixPath = [ "nixpkgs=${inputs.nixpkgs}" "nixos-config=/home/${hostParams.username}/nixcfg" ];
+    nixPath = [ "nixpkgs=${mediaserver-inputs.nixpkgs}" "nixos-config=/home/${config.mediaserver.username}/nixcfg" ];
 
     # Which package collection to use system-wide.
     package = pkgs.nixVersions.latest;
@@ -76,7 +76,7 @@
         keep-outputs = true
       '';
 
-    registry.nixpkgs.flake = inputs.nixpkgs;
+    registry.nixpkgs.flake = mediaserver-inputs.nixpkgs;
 
     # Garbage collection - deletes all unreachable paths in Nix store.
     gc = {
@@ -99,14 +99,14 @@
   # User config
   # --------------------------------------------------------------------------------------
 
-  users.users.${hostParams.username} = {
+  users.users.${config.mediaserver.username} = {
     isNormalUser  = true;
-    home  = "/home/${hostParams.username}";
+    home  = "/home/${config.mediaserver.username}";
     description  = "Mediaserver User";
     extraGroups  = [ "wheel" "networkmanager" "audio" "pulse" "pulse-access" ];
     # @TODO: Make this dynamic, not hard coded
-    openssh.authorizedKeys.keys  = hostParams.sshKeys;
-    hashedPassword = hostParams.hashedPassword;
+    openssh.authorizedKeys.keys  = config.mediaserver.sshKeys;
+    hashedPassword = config.mediaserver.hashedPassword;
   };
 
   security.sudo.extraRules = [
@@ -127,11 +127,11 @@
       ## Allow broken packages.
       # allowBroken = true;
       packageOverrides = pkgs: {
-        unstable = import inputs.nixpkgs-unstable {
+        unstable = import mediaserver-inputs.nixpkgs-unstable {
           config = config.nixpkgs.config;
           inherit system;
         };
-        trunk = import inputs.nixpkgs-trunk {
+        trunk = import mediaserver-inputs.nixpkgs-trunk {
           config = config.nixpkgs.config;
           inherit system;
         };
@@ -207,7 +207,7 @@
   programs.nix-ld.enable = true;
 
   programs.command-not-found.enable = true;
-  programs.command-not-found.dbPath = "${inputs.nixpkgs}/programs.sqlite";
+  programs.command-not-found.dbPath = "${mediaserver-inputs.nixpkgs}/programs.sqlite";
 
   programs.mosh.enable = true;
 

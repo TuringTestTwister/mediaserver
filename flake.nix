@@ -24,71 +24,22 @@
     ...
   }@inputs:
   let
-    hostParams = import ./host-params.nix {};
-    raspi-modules = [
-      "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-      nixos-hardware.nixosModules.raspberry-pi-4
-      ./configuration.nix
-      ./hosts/mediaserver-rpi4/hardware-configuration.nix
-      ./hosts/mediaserver-rpi4/sound.nix
-      ./hosts/mediaserver-rpi4/bluetooth.nix
-
-      # @TODO: Identify nixvim performance bottlenecks
-      # inputs.nixvim-config.nixosModules.default
-      # {
-      #   nixvim-config.enable = true;
-      #   nixvim-config.enable-ai = false;
-      #   nixvim-config.enable-startify-cowsay = false;
-      #   nixvim-config.disable-treesitter = true;
-      # }
-      {
-        programs.neovim = {
-          enable = true;
-          defaultEditor = true;
-        };
-      }
-
-      ## Are these still needed?
-      ./hosts/mediaserver-rpi4/boot.nix
-    ];
+    mediaserver-inputs = inputs;
   in
   {
-    nixosConfigurations = {
-      mediaserver-rpi4 = inputs.nixpkgs.lib.nixosSystem {
+    nixosModules = rec {
+      rpi4 = import ./default.nix {
+        inherit mediaserver-inputs;
         system = "aarch64-linux";
-        modules = raspi-modules;
-        specialArgs = {
-          system = "aarch64-linux";
-          inherit inputs;
-          inherit hostParams;
-        };
       };
-      mediaserver-rpi4-cross-compile = inputs.nixpkgs.lib.nixosSystem {
+      default = rpi4;
+      rpi4-cross-compile = import ./rpi4-cross-compile.nix {
+        inherit mediaserver-inputs;
         system = "aarch64-linux";
-        ## Add buildPlatform to cross-compile rather than use binfmt with qemu
-        modules = raspi-modules ++ [
-          { nixpkgs.buildPlatform = "x86_64-linux"; }
-        ];
-        specialArgs = {
-          system = "aarch64-linux";
-          inherit inputs;
-          inherit hostParams;
-        };
       };
-      mediaserver-x86 = inputs.nixpkgs.lib.nixosSystem {
+      mediaserver-x86 = import ./x86.nix {
+        inherit mediaserver-inputs;
         system = "x86_64-linux";
-        modules = [
-          nixos-hardware.nixosModules.common-cpu-intel
-          nixos-hardware.nixosModules.common-pc-laptop
-          ./configuration.nix
-          ./profiles/hardware-configuration.nix
-          ./profiles/virtual-machine.nix
-        ];
-        specialArgs = {
-          inherit inputs;
-          system = "x86_64-linux";
-          inherit hostParams;
-        };
       };
     };
   };

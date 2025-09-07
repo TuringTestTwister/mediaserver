@@ -1,4 +1,4 @@
-{ lib, modulesPath, hostParams, ... }:
+{ config, lib, modulesPath, ... }:
 
 {
   imports =
@@ -21,7 +21,7 @@
       fsType = "autofs";
     };
 
-  fileSystems."/home/${hostParams.username}/nixcfg" =
+  fileSystems."/home/${config.mediaserver.username}/nixcfg" =
     { device = "mount_mediaserver_source";
       fsType = "virtiofs";
       options = [ "nofail" ];

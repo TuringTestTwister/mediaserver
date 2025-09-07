@@ -1,4 +1,4 @@
-{ lib, pkgs, hostParams, ... }:
+{ pkgs, ... }:
 {
   services.mopidy = {
     enable = true;

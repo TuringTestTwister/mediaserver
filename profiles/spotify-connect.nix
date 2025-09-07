@@ -1,6 +1,6 @@
-{ lib, pkgs, hostParams, ... }:
+{ config, lib, pkgs, ... }:
 let
-  device-name = hostParams.hostName;
+  device-name = config.mediaserver.hostName;
   bitrate = "320";
   cache-args = "--disable-audio-cache";
   # cache-args = "--cache /var/cache/raspotify";
@@ -32,7 +32,7 @@ in
 
       serviceConfig = {
         ## Needed to get access to pulseaudio
-        User = hostParams.username;
+        User = config.mediaserver.username;
         Group = "users";
         # User = "root";
         # Group = "root";

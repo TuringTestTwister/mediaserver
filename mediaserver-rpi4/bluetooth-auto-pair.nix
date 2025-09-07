@@ -1,10 +1,10 @@
-{ lib, pkgs, hostParams, ... }:
+{  pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
     bluez-tools
   ];
 
-  systemd.services.bluetooth-auto-pair = 
+  systemd.services.bluetooth-auto-pair =
   {
     wantedBy = [
       "bluetooth.service"
@@ -22,7 +22,7 @@
         discoverable on
         pairable on
         EOF
-   
+
         ${pkgs.coreutils}/bin/yes | ${pkgs.bluez-tools}/bin/bt-agent -c NoInputNoOutput
       '';
       ExecStop = pkgs.writeShellScript "exec-stop" ''
@@ -38,11 +38,11 @@
         # Pairing always on
         AlwaysPairable = "true";
         # Don't disable discoverability after timeout
-	DiscoverableTimeout = "0";
-	# Faster but uses more power
-	FastConnectable = "true";
-	# Allow repairing of existing devices
-	JustWorksRepairing = "always";
+        DiscoverableTimeout = "0";
+        # Faster but uses more power
+        FastConnectable = "true";
+        # Allow repairing of existing devices
+        JustWorksRepairing = "always";
       };
     };
   };

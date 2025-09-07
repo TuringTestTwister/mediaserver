@@ -1,4 +1,4 @@
-{ lib, pkgs, hostParams, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./bluetooth-auto-pair.nix

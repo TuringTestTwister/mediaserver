@@ -1,7 +1,8 @@
-{ inputs, hostParams, pkgs, ... }:
-
+{ config, mediaserver-inputs, ... }:
 {
   imports = [
+    ./module.nix
+    mediaserver-inputs.nixvim-config.nixosModules.default
     # ./modules/network-manager-wireless.nix
     ./profiles/common.nix
     ./profiles/mopidy.nix
@@ -35,7 +36,7 @@
 
   networking = {
     # @TODO: Make this UI configurable
-    hostName = hostParams.hostName;
+    hostName = config.mediaserver.hostname;
     useNetworkd = true;
     networkmanager = {
       enable = false;
@@ -45,8 +46,8 @@
       enable = true;
       # Used by modules/network-manager-wireless.nix
       networks = {
-        ${hostParams.wifiSSID} = {
-          psk = hostParams.wifiPassword;
+        ${config.mediaserver.wifiSSID} = {
+          psk = config.mediaserver.wifiPassword;
           extraConfig = ''
             freq_list=5170 5180 5190 5200 5210 5220 5230 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 5720 5745 5765 5785 5805 5825
           '';
@@ -67,6 +68,20 @@
   # --------------------------------------------------------------------------------------
 
   security.rtkit.enable = true;
+
+  # --------------------------------------------------------------------------------------
+  # Programs
+  # --------------------------------------------------------------------------------------
+
+  # @TODO: Identify nixvim performance bottlenecks
+  # nixvim-config.enable = true;
+  # nixvim-config.enable-ai = false;
+  # nixvim-config.enable-startify-cowsay = false;
+  # nixvim-config.disable-treesitter = true;
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+  };
 }
 
 
