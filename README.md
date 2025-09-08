@@ -31,7 +31,7 @@ Create a new directory for your configuration with just two files:
 ```nix
 {
   inputs = {
-    mediaserver.url = "github:yourusername/mediaserver";
+    mediaserver.url = "github:turingtesttwister/mediaserver";
     # Or for local development:
     # mediaserver.url = "path:/path/to/mediaserver";
   };
@@ -76,14 +76,14 @@ From your configuration directory containing the flake.nix:
 
 ```bash
 # Clone or get the mediaserver repo
-git clone https://github.com/yourusername/mediaserver
+git clone https://github.com/turingtesttwister/mediaserver
 
 # Build SD card image from your config directory
 cd my-config
 ../mediaserver/scripts/build-image.sh -f . my-mediaserver
 
 # Or using nix directly (no clone needed)
-nix run github:yourusername/mediaserver#build-image -- -f . my-mediaserver
+nix run github:turingtesttwister/mediaserver#build-image -- -f . my-mediaserver
 ```
 
 #### Flashing to SD Card
@@ -93,7 +93,7 @@ nix run github:yourusername/mediaserver#build-image -- -f . my-mediaserver
 ../mediaserver/scripts/flash.sh -f . /dev/sda
 
 # Or using nix directly
-nix run github:yourusername/mediaserver#flash -- -f . /dev/sda
+nix run github:turingtesttwister/mediaserver#flash -- -f . /dev/sda
 ```
 
 #### Remote Deployment
@@ -103,7 +103,7 @@ nix run github:yourusername/mediaserver#flash -- -f . /dev/sda
 ../mediaserver/scripts/remote-deploy.sh -f . -u mediaserver hostname.lan my-mediaserver
 
 # Or using nix directly
-nix run github:yourusername/mediaserver#deploy -- -f . -u mediaserver hostname.lan my-mediaserver
+nix run github:turingtesttwister/mediaserver#deploy -- -f . -u mediaserver hostname.lan my-mediaserver
 ```
 
 ## Scripts
