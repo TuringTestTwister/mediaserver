@@ -45,7 +45,6 @@ Create a new directory for your configuration with just two files:
       ];
       hashedPassword = "$6$..."; # Generate with: mkpasswd -m sha-512
       wifiSSID = "your-wifi-network";
-      wifiPassword = "your-wifi-password";
       snapcastServerHost = "mediaserver.lan";
     };
   in

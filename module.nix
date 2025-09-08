@@ -48,12 +48,6 @@
       description = "Wifi access point name";
     };
 
-    wifiPassword = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Wifi password";
-    };
-
     snapcastLatency = lib.mkOption {
       type = lib.types.int;
       default = 0;
