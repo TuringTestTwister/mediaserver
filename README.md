@@ -1,129 +1,300 @@
-README
-======
+# NixOS Media Server
 
-Raspberry Pi Media Server
+A NixOS-based media server configuration for Raspberry Pi and x86 systems, featuring Snapcast multi-room audio, Spotify Connect, Mopidy, and Bluetooth audio support.
 
-Currently only supports Spotify Connect.
+## Features
 
-### Setup for non-NixOS operating systems
+- **Multi-room audio** with Snapcast (synchronized audio across multiple devices)
+- **Spotify Connect** support via librespot
+- **Mopidy** music server with web interface
+- **Bluetooth** audio support with auto-pairing
+- **Network audio** streaming capabilities
+- **PulseAudio** integration
+- **Web UI** for Snapcast control
 
-This has only been tested on a NixOS host. Running `make setup` should get Nix installed on Fedora,
-but it still needs to be manually configured as per "Dev Environment Setup" below. Refer to the Nix
-home page on how to install Nix on distributions other than Fedora.
+## Quick Start
 
-### Nix Environment Setup
+### 1. Prerequisites
 
-Must have the following in your host nix config to cross compile:
+Install Nix and required dependencies:
 
+```bash
+# From the mediaserver directory
+./scripts/setup.sh
 ```
+
+### 2. Create Your Configuration
+
+Create a new directory for your configuration with just two files:
+
+**flake.nix:**
+```nix
 {
-  # Enable binfmt emulation of aarch64-linux.
-  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-}
-```
+  inputs = {
+    mediaserver.url = "github:yourusername/mediaserver";
+    # Or for local development:
+    # mediaserver.url = "path:/path/to/mediaserver";
+  };
 
-The following will help build speeds:
-
-
-```
-{
-  nix = {
-    settings = {
-      substituters = [
-        "https://arm.cachix.org/"
+  outputs = { mediaserver, ... }:
+  let
+    sharedConfig = {
+      username = "mediaserver";
+      sshKeys = [
+        "ssh-rsa YOUR_SSH_KEY_HERE"
       ];
-      trusted-public-keys = [
-        "arm.cachix.org-1:5BZ2kjoL1q6nWhlnrbAl+G7ThY7+HaBRD9PZzqZkbnM="
-      ];
+      hashedPassword = "$6$..."; # Generate with: mkpasswd -m sha-512
+      wifiSSID = "your-wifi-network";
+      wifiPassword = "your-wifi-password";
+      snapcastServerHost = "mediaserver.lan";
+    };
+  in
+  {
+    nixosConfigurations = {
+      my-mediaserver = mediaserver.nixosConfigurations.rpi4.extendModules {
+        modules = [{
+          mediaserver = sharedConfig // {
+            hostname = "my-mediaserver";
+          };
+        }];
+      };
     };
   };
 }
 ```
 
-### Configuring
-
-Edit `host-params.nix`
-
-### Building
-
-Building will generate two images, an ARM rasberry pi image, and an x86 VM image.
-Be aware that building can take a long time, even hours, on slow machines, as
-it's building the ARM image in a qemu VM.
-
-```
-make build-image
+**wireless-secrets** (optional, for WiFi, no quotes around password):
+```bash
+password=your-wifi-password
 ```
 
-### Flashing
+### 3. Build and Deploy
 
-Replace `/dev/sda` with your SD card device
+From your configuration directory containing the flake.nix:
 
-```
-make flash DEVICE=/dev/sda
-```
+#### Building Images
 
-### Running x86 version in local VM
+```bash
+# Clone or get the mediaserver repo
+git clone https://github.com/yourusername/mediaserver
 
-```
-make run
-```
+# Build SD card image from your config directory
+cd my-config
+../mediaserver/scripts/build-image.sh -f . my-mediaserver
 
-### SSH'ing into local VM
-
-```
-make ssh
+# Or using nix directly (no clone needed)
+nix run github:yourusername/mediaserver#build-image -- -f . my-mediaserver
 ```
 
-### Rebuilding config on raspberry pi or VM
+#### Flashing to SD Card
 
-Once the machine is running, you can edit Nix config and build without generating images.
-This is much faster and good for making changes. When running a VM, the ~/nixcfg path
-is shared with the host, so you can commit your changes to git.
+```bash
+# Flash the built image to an SD card (from your config directory)
+../mediaserver/scripts/flash.sh -f . /dev/sda
 
-```
-cd ~/nixcfg
-make build
-```
-
-### Connecting to wifi from raspberry pi
-
-Edit `host-params.nix` to enter wifi credentials before building. You can also
-manually connect to other networks after ssh'ing into the mediaserver.
-
-```
-sudo nmcli dev wifi connect <network-ssid> --ask
-sudo nmcli device set wlan0 autoconnect yes
+# Or using nix directly
+nix run github:yourusername/mediaserver#flash -- -f . /dev/sda
 ```
 
-### Connecting bluetooth input (e.g. phone or computer)
+#### Remote Deployment
 
-```
-bluetoothctl
-  power on
-  discoverable on
-  pairable on
-  # pair from phone
-  # answer yes to everything on phone and mediaserver
-  trust
+```bash
+# Deploy to an existing NixOS system (from your config directory)
+../mediaserver/scripts/remote-deploy.sh -f . -u mediaserver hostname.lan my-mediaserver
+
+# Or using nix directly
+nix run github:yourusername/mediaserver#deploy -- -f . -u mediaserver hostname.lan my-mediaserver
 ```
 
-### Connecting bluetooth output (e.g. speaker)
+## Scripts
 
-```
-bluetoothctl
-  power on
-  discoverable on
-  pairable on
-  scan on
-  pair <speaker address>
-  # May need to tap bluetooth button on speaker, e.g. Soundcore Boom 2
-  connect
-  trust
+All deployment scripts are located in the `scripts/` directory and can be used with external flake configurations:
+
+### `setup.sh`
+Installs Nix and required system dependencies.
+
+```bash
+./scripts/setup.sh [--check]
 ```
 
-### Seeing what the config.txt firmware file will be before rebuilding
+### `build-image.sh`
+Builds NixOS images for Raspberry Pi or x86 systems.
+
+```bash
+./scripts/build-image.sh -f /path/to/your-flake [config-name]
+```
+
+Options:
+- `-f, --flake-dir`: Path to your flake directory (default: current directory)
+- `-o, --output-dir`: Output directory for built images
+- `-k, --keep-compressed`: Keep compressed .zst files
+
+### `flash.sh`
+Writes a built image to an SD card or USB device.
+
+```bash
+./scripts/flash.sh -f /path/to/your-flake /dev/sda
+```
+
+Options:
+- `-f, --flake-dir`: Path to your flake directory
+- `-c, --config`: Specific configuration to flash
+- `-i, --image`: Specific image file to flash
+- `-y, --yes`: Skip confirmation prompt
+
+### `remote-deploy.sh`
+Deploys a NixOS configuration to a remote host by building locally and copying the closure.
+
+```bash
+./scripts/remote-deploy.sh -f /path/to/your-flake -u user hostname config-name
+```
+
+Options:
+- `-f, --flake-dir`: Path to your flake directory
+- `-u, --user`: Remote user (default: root)
+- `-d, --dry-run`: Show what would be done
+- `-r, --reboot`: Reboot after activation
+
+### `build.sh`
+Rebuilds NixOS configuration locally (for use on NixOS systems).
+
+```bash
+./scripts/build.sh -f /path/to/your-flake [config-name]
+```
+
+### `run.sh`
+Runs an x86 VM image locally for testing.
+
+```bash
+./scripts/run.sh -f /path/to/your-flake
+```
+
+Options:
+- `-m, --memory`: VM memory size (default: 8G)
+- `-s, --smp`: Number of CPUs (default: 4)
+
+## Configuration Options
+
+The mediaserver module accepts the following options:
+
+```nix
+{
+  mediaserver = {
+    # Basic settings
+    hostname = "mediaserver";           # System hostname
+    username = "mediaserver";           # Admin user
+    timeZone = "America/Los_Angeles";  # Timezone
+
+    # Authentication
+    sshKeys = [ "ssh-rsa ..." ];       # SSH public keys
+    hashedPassword = "$6$...";         # User password hash
+
+    # Network
+    wifiSSID = "network-name";          # WiFi network name
+
+    # Snapcast
+    snapcastLatency = 0;                # Audio latency in ms
+    snapcastServerHost = "server.lan";  # Snapcast server address
+    snapcastController = false;         # Enable controller mode
+    snapcastControllerStreams = [       # Controller streams config
+      {
+        name = "stream1";
+        ip-address = "10.0.0.10";
+      }
+    ];
+
+    # Audio
+    forceHeadphoneOutput = false;       # Force headphone output
+  };
+}
+```
+
+## Multi-room Audio Setup
+
+To set up a multi-room audio system:
+
+1. **Configure a Controller Node**: Set `snapcastController = true` on one device
+2. **Configure Client Nodes**: Point `snapcastServerHost` to the controller
+3. **Add Streams**: Configure `snapcastControllerStreams` on the controller
+
+Example controller configuration:
+
+```nix
+{
+  mediaserver = {
+    hostname = "audio-controller";
+    snapcastController = true;
+    snapcastControllerStreams = [
+      { name = "living-room"; ip-address = "10.0.0.10"; }
+      { name = "kitchen"; ip-address = "10.0.0.11"; }
+      { name = "bedroom"; ip-address = "10.0.0.12"; }
+    ];
+  };
+}
+```
+
+
+## Architecture
+
+The project is structured as follows:
 
 ```
-nix build '.#nixosConfigurations.mediaserver-rpi4.config.hardware.raspberry-pi.config-output'
-nix eval '.#nixosConfigurations.mediaserver-rpi4.config.hardware.raspberry-pi.config-output' --raw
+mediaserver/
+├── flake.nix              # Main flake definition
+├── module.nix             # NixOS module options
+├── configuration.nix      # Base configuration
+├── rpi4.nix              # Raspberry Pi 4 specific config
+├── x86.nix               # x86 specific config
+├── scripts/              # Deployment scripts
+│   ├── setup.sh
+│   ├── build-image.sh
+│   ├── flash.sh
+│   ├── remote-deploy.sh
+│   ├── build.sh
+│   └── run.sh
+├── profiles/             # Service configurations
+│   ├── snapcast.nix
+│   ├── mopidy.nix
+│   └── ...
+└── mediaserver-rpi4/     # Hardware-specific configs
+    ├── bluetooth.nix
+    ├── sound.nix
+    └── ...
 ```
+
+## Wireless Secrets
+
+For WiFi configuration, create a `wireless-secrets` file in your configuration directory:
+
+```bash
+password=your-wifi-password
+```
+
+This file will be deployed to `/etc/nixos/wireless-secrets` on the target system.
+
+## Troubleshooting
+
+### SSH Access
+Default SSH port is 22. After deployment, you can access the system:
+```bash
+ssh mediaserver@hostname.lan
+```
+
+### Audio Issues
+- Check PulseAudio status: `systemctl status pulseaudio`
+- View Snapcast logs: `journalctl -u snapserver` or `journalctl -u snapclient`
+- Reset audio configuration: Stop PulseAudio, remove `/var/lib/pulse`, restart
+
+### Network Issues
+- Verify WiFi credentials in `wireless-secrets`
+- Check network status: `networkctl status`
+- View network logs: `journalctl -u NetworkManager`
+
+## License
+
+[Add your license here]
+
+## Contributing
+
+[Add contribution guidelines]
+

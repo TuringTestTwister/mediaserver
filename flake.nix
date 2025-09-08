@@ -25,8 +25,32 @@
   }@inputs:
   let
     mediaserver-inputs = inputs;
+    
+    # Helper function to create script apps
+    mkScriptApp = system: pkgs: scriptName: scriptPath: {
+      type = "app";
+      program = "${pkgs.writeShellScriptBin scriptName ''
+        exec ${scriptPath} "$@"
+      ''}/bin/${scriptName}";
+    };
+    
+    # Create apps for a specific system
+    mkSystemApps = system: pkgs: {
+      deploy = mkScriptApp system pkgs "deploy" ./scripts/remote-deploy.sh;
+      build-image = mkScriptApp system pkgs "build-image" ./scripts/build-image.sh;
+      flash = mkScriptApp system pkgs "flash" ./scripts/flash.sh;
+      build = mkScriptApp system pkgs "build" ./scripts/build.sh;
+      run = mkScriptApp system pkgs "run" ./scripts/run.sh;
+      setup = mkScriptApp system pkgs "setup" ./scripts/setup.sh;
+    };
   in
   {
+    # Expose scripts as flake apps
+    apps = {
+      x86_64-linux = mkSystemApps "x86_64-linux" nixpkgs.legacyPackages.x86_64-linux;
+      aarch64-linux = mkSystemApps "aarch64-linux" nixpkgs.legacyPackages.aarch64-linux;
+    };
+    
     nixosConfigurations = {
       rpi4 = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
