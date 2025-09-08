@@ -1,4 +1,4 @@
-{ config, mediaserver-inputs, ... }:
+{ config, mediaserver-inputs, pkgs, ... }:
 {
   imports = [
     ./module.nix
@@ -47,14 +47,23 @@
       # Used by modules/network-manager-wireless.nix
       networks = {
         ${config.mediaserver.wifiSSID} = {
-          psk = config.mediaserver.wifiPassword;
+          pskRaw = "ext:password";  # This tells NixOS to read from external file
           extraConfig = ''
             freq_list=5170 5180 5190 5200 5210 5220 5230 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 5720 5745 5765 5785 5805 5825
           '';
         };
       };
+      secretsFile = "/etc/nixos/wireless-secrets";
     };
   };
+
+
+  # Create the secrets file with proper permissions
+  system.activationScripts.wirelessSecrets = ''
+    touch /etc/nixos/wireless-secrets
+    chmod 600 /etc/nixos/wireless-secrets
+    chown root:root /etc/nixos/wireless-secrets
+  '';
 
   # Supposedly fixes bluetooth stuttering by setting the appropriate region to limit frequencies, but doesn't seem to work
   environment.etc."default/crda" = {
