@@ -24,70 +24,63 @@
     ...
   }@inputs:
   let
-    hostParams = import ./host-params.nix {};
-    raspi-modules = [
-      "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-      nixos-hardware.nixosModules.raspberry-pi-4
-      ./configuration.nix
-      ./hosts/mediaserver-rpi4/hardware-configuration.nix
-      ./hosts/mediaserver-rpi4/sound.nix
-      ./hosts/mediaserver-rpi4/bluetooth.nix
-
-      # @TODO: Identify nixvim performance bottlenecks
-      # inputs.nixvim-config.nixosModules.default
-      # {
-      #   nixvim-config.enable = true;
-      #   nixvim-config.enable-ai = false;
-      #   nixvim-config.enable-startify-cowsay = false;
-      #   nixvim-config.disable-treesitter = true;
-      # }
-      {
-        programs.neovim = {
-          enable = true;
-          defaultEditor = true;
-        };
-      }
-
-      ## Are these still needed?
-      ./hosts/mediaserver-rpi4/boot.nix
-    ];
+    mediaserver-inputs = inputs;
+    
+    # Helper function to create script apps
+    mkScriptApp = system: pkgs: scriptName: scriptPath: {
+      type = "app";
+      program = "${pkgs.writeShellScriptBin scriptName ''
+        exec ${scriptPath} "$@"
+      ''}/bin/${scriptName}";
+    };
+    
+    # Create apps for a specific system
+    mkSystemApps = system: pkgs: {
+      deploy = mkScriptApp system pkgs "deploy" ./scripts/remote-deploy.sh;
+      build-image = mkScriptApp system pkgs "build-image" ./scripts/build-image.sh;
+      flash = mkScriptApp system pkgs "flash" ./scripts/flash.sh;
+      build = mkScriptApp system pkgs "build" ./scripts/build.sh;
+      run = mkScriptApp system pkgs "run" ./scripts/run.sh;
+      setup = mkScriptApp system pkgs "setup" ./scripts/setup.sh;
+    };
   in
   {
+    # Expose scripts as flake apps
+    apps = {
+      x86_64-linux = mkSystemApps "x86_64-linux" nixpkgs.legacyPackages.x86_64-linux;
+      aarch64-linux = mkSystemApps "aarch64-linux" nixpkgs.legacyPackages.aarch64-linux;
+    };
+    
     nixosConfigurations = {
-      mediaserver-rpi4 = inputs.nixpkgs.lib.nixosSystem {
+      rpi4 = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        modules = raspi-modules;
+        modules = [
+          ./rpi4.nix
+        ];
         specialArgs = {
           system = "aarch64-linux";
-          inherit inputs;
-          inherit hostParams;
+          inherit mediaserver-inputs;
         };
       };
-      mediaserver-rpi4-cross-compile = inputs.nixpkgs.lib.nixosSystem {
+      rpi4-cross-compile = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        ## Add buildPlatform to cross-compile rather than use binfmt with qemu
-        modules = raspi-modules ++ [
+        modules = [
+          ./rpi4.nix
           { nixpkgs.buildPlatform = "x86_64-linux"; }
         ];
         specialArgs = {
           system = "aarch64-linux";
-          inherit inputs;
-          inherit hostParams;
+          inherit mediaserver-inputs;
         };
       };
-      mediaserver-x86 = inputs.nixpkgs.lib.nixosSystem {
+      x86 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          nixos-hardware.nixosModules.common-cpu-intel
-          nixos-hardware.nixosModules.common-pc-laptop
-          ./configuration.nix
-          ./profiles/hardware-configuration.nix
-          ./profiles/virtual-machine.nix
+          ./x86.nix
         ];
         specialArgs = {
-          inherit inputs;
           system = "x86_64-linux";
-          inherit hostParams;
+          inherit mediaserver-inputs;
         };
       };
     };

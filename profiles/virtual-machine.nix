@@ -1,4 +1,4 @@
-{ pkgs, hostParams, ... }:
+{ config, pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
     libvirt
@@ -8,7 +8,7 @@
   systemd.mounts = [
     {
       what = "mount_mediaserver_source";
-      where = "/home/${hostParams.username}/nixcfg";
+      where = "/home/${config.mediaserver.username}/nixcfg";
       type = "virtiofs";
       wantedBy = [ "multi-user.target" ];
       enable = true;

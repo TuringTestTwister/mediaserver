@@ -4,6 +4,8 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_NAME=$(basename "$0")
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+# Default to current directory, can be overridden with -f/--flake-dir
 FLAKE_DIR="${FLAKE_DIR:-$(pwd)}"
 REMOTE_USER="${REMOTE_USER:-root}"
 REMOTE_TEMP_DIR="/tmp/nixos-deploy-$$"
@@ -63,6 +65,63 @@ cleanup_ssh_connection() {
 # Set up trap to cleanup SSH connection on script exit
 trap cleanup_ssh_connection EXIT
 
+# Function to prompt user about continuing without wireless secrets
+prompt_continue_without_wireless() {
+    echo
+    log_warning "The wireless-secrets file does not exist at: $WIRELESS_SECRETS_FILE"
+    log_warning "This means WiFi passwords will not be deployed to the remote host."
+    echo
+    read -p "Do you want to continue without setting up WiFi passwords? [y/N]: " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Deployment cancelled by user"
+        exit 0
+    fi
+    log_info "Continuing deployment without wireless secrets..."
+}
+
+# Function to deploy wireless secrets
+deploy_wireless_secrets() {
+    # Wireless secrets file is expected in the flake directory
+    WIRELESS_SECRETS_FILE="$FLAKE_DIR/wireless-secrets"
+    
+    if [[ ! -f "$WIRELESS_SECRETS_FILE" ]]; then
+        if [[ "$DRY_RUN" == "true" ]]; then
+            log_warning "Would prompt user about missing wireless-secrets file"
+            return 0
+        else
+            prompt_continue_without_wireless
+            return 0
+        fi
+    fi
+
+    log_info "Deploying wireless secrets from: $WIRELESS_SECRETS_FILE"
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log_info "Would copy $WIRELESS_SECRETS_FILE to remote host at /etc/nixos/wireless-secrets"
+    else
+        # Create /etc/nixos directory if it doesn't exist
+        if ! $SSH_BASE_CMD "$REMOTE_HOST" "sudo mkdir -p /etc/nixos"; then
+            log_error "Failed to create /etc/nixos directory on remote host"
+            return 1
+        fi
+
+        # Copy the wireless secrets file to the temporary directory first
+        if ! scp -o ControlPath="$SSH_CONTROL_PATH" "$WIRELESS_SECRETS_FILE" "$REMOTE_HOST:$REMOTE_TEMP_DIR/wireless-secrets"; then
+            log_error "Failed to upload wireless-secrets file"
+            return 1
+        fi
+
+        # Move it to the final location with appropriate permissions
+        if ! $SSH_BASE_CMD "$REMOTE_HOST" "sudo cp '$REMOTE_TEMP_DIR/wireless-secrets' /etc/nixos/wireless-secrets && sudo chmod 600 /etc/nixos/wireless-secrets && sudo chown root:root /etc/nixos/wireless-secrets"; then
+            log_error "Failed to install wireless-secrets file with proper permissions"
+            return 1
+        fi
+
+        log_success "Wireless secrets deployed successfully"
+    fi
+}
+
 usage() {
     cat << EOF
 Usage: $SCRIPT_NAME [OPTIONS] <hostname> <nixos-config>
@@ -85,9 +144,19 @@ Environment Variables:
   REMOTE_USER              Default remote user
   FLAKE_DIR               Default flake directory
 
+Wireless Secrets:
+  The script will look for a 'wireless-secrets' file in the flake directory
+  and deploy it to /etc/nixos/wireless-secrets on the remote host. If the file doesn't
+  exist, you'll be prompted whether to continue without WiFi password deployment.
+
 Examples:
+  # Deploy from current directory
   $SCRIPT_NAME myserver.lan myserver
-  $SCRIPT_NAME -u admin 192.168.1.100 homelab
+  
+  # Deploy from specific flake directory
+  $SCRIPT_NAME -f /path/to/my-flake -u admin 192.168.1.100 homelab
+  
+  # Dry run with result keeping
   $SCRIPT_NAME --dry-run --keep-result server.example.com production
 
 Note: This script uses SSH connection multiplexing to avoid repeated password prompts.
@@ -146,8 +215,9 @@ fi
 
 HOSTNAME="$1"
 NIXOS_CONFIG="$2"
-FLAKE_REF="$FLAKE_DIR#nixosConfigurations.$NIXOS_CONFIG"
-REMOTE_HOST="$REMOTE_USER@$HOSTNAME"
+
+# Ensure flake directory is absolute path
+FLAKE_DIR=$(realpath "$FLAKE_DIR")
 
 # Validate flake directory
 if [[ ! -f "$FLAKE_DIR/flake.nix" ]]; then
@@ -155,9 +225,13 @@ if [[ ! -f "$FLAKE_DIR/flake.nix" ]]; then
     exit 1
 fi
 
+FLAKE_REF="$FLAKE_DIR#nixosConfigurations.$NIXOS_CONFIG"
+REMOTE_HOST="$REMOTE_USER@$HOSTNAME"
+
 log_info "Starting NixOS closure deployment"
 log_info "Flake: $FLAKE_REF"
 log_info "Target: $REMOTE_HOST"
+log_info "Flake directory: $FLAKE_DIR"
 
 if [[ "$DRY_RUN" == "true" ]]; then
     log_warning "DRY RUN MODE - No changes will be made"
@@ -236,7 +310,7 @@ log_success "Build completed in ${BUILD_TIME}s: $SYSTEM_PATH"
 
 # Optionally create a result symlink for local reference
 if [[ "$KEEP_RESULT" == "true" && "$DRY_RUN" == "false" ]]; then
-    RESULT_LINK="result-$NIXOS_CONFIG-$(date +%Y%m%d-%H%M%S)"
+    RESULT_LINK="$FLAKE_DIR/result-$NIXOS_CONFIG-$(date +%Y%m%d-%H%M%S)"
     ln -sf "$SYSTEM_PATH" "$RESULT_LINK"
     log_info "Created result symlink: $RESULT_LINK"
 fi
@@ -261,19 +335,30 @@ COPY_END=$(date +%s)
 COPY_TIME=$((COPY_END - COPY_START))
 log_success "Closure copied in ${COPY_TIME}s"
 
-log_info "Activating new system configuration on remote host..."
-
-if [[ "$DRY_RUN" == "true" ]]; then
-    log_info "Would create temporary directory and activation script on remote"
-    log_info "Would run activation script with system path: $SYSTEM_PATH"
-else
-    # Create temporary directory
+# Create temporary directory before deploying wireless secrets or activating system
+if [[ "$DRY_RUN" == "false" ]]; then
     log_info "Creating temporary directory on remote host..."
     if ! $SSH_BASE_CMD "$REMOTE_HOST" "mkdir -p '$REMOTE_TEMP_DIR' && chmod 700 '$REMOTE_TEMP_DIR'"; then
         log_error "Failed to create temporary directory on remote host"
         exit 1
     fi
+fi
 
+# Deploy wireless secrets
+if ! deploy_wireless_secrets; then
+    log_error "Failed to deploy wireless secrets"
+    if [[ "$DRY_RUN" == "false" ]]; then
+        $SSH_BASE_CMD "$REMOTE_HOST" "rm -rf '$REMOTE_TEMP_DIR'" || true
+    fi
+    exit 1
+fi
+
+log_info "Activating new system configuration on remote host..."
+
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "Would create activation script on remote"
+    log_info "Would run activation script with system path: $SYSTEM_PATH"
+else
     # Create and upload activation script
     log_info "Uploading activation script..."
     ACTIVATION_SCRIPT=$(cat << 'EOF'

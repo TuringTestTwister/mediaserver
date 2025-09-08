@@ -1,4 +1,4 @@
-{ lib, pkgs, hostParams, ... }:
+{ lib,  ... }:
 {
   #-------------------------------------------------------------------------------
   # See: https://github.com/NixOS/nixpkgs/issues/123725#issuecomment-1613705556
