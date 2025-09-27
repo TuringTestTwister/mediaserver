@@ -73,22 +73,26 @@ in
   ## Creates sink for various inputs (mainly bluetooth)
   systemd.services.snapcast-sink = {
     wantedBy = [
-      "pulseaudio.service"
+      "snapserver.service"
     ];
     after = [
+      "snapserver.service"
       "pulseaudio.service"
     ];
+    # @TODO: Does this restart this service when snapserver restarts?
     bindsTo = [
-      "pulseaudio.service"
+      "snapserver.service"
     ];
     path = with pkgs; [
       pulseaudio
     ];
     script = ''
+      pactl unload-module module-pipe-sink 2>&1 | true
       pactl load-module module-pipe-sink file=/run/snapserver/bluetooth sink_name=BluetoothFifo format=s16le rate=44100 channels=2
       # pactl load-module module-pipe-sink file=/run/snapserver/main sink_name=Snapcast format=s16le rate=44100 channels=2
     '';
     serviceConfig = {
+      ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
       ## Needed to get access to pulseaudio
       User = config.mediaserver.username;
     };

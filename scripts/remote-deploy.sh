@@ -84,7 +84,7 @@ prompt_continue_without_wireless() {
 deploy_wireless_secrets() {
     # Wireless secrets file is expected in the flake directory
     WIRELESS_SECRETS_FILE="$FLAKE_DIR/wireless-secrets"
-    
+
     if [[ ! -f "$WIRELESS_SECRETS_FILE" ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
             log_warning "Would prompt user about missing wireless-secrets file"
@@ -152,10 +152,10 @@ Wireless Secrets:
 Examples:
   # Deploy from current directory
   $SCRIPT_NAME myserver.lan myserver
-  
+
   # Deploy from specific flake directory
   $SCRIPT_NAME -f /path/to/my-flake -u admin 192.168.1.100 homelab
-  
+
   # Dry run with result keeping
   $SCRIPT_NAME --dry-run --keep-result server.example.com production
 

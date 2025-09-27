@@ -14,7 +14,7 @@ while [ true ]; do
       echo "Got source num: $SOURCE_NUM"
       SOURCE=$(pactl list sources short | grep -e "^$SOURCE_NUM\s" | awk '{ print $2 }')
       echo "Got source from num: $SOURCE"
-      SOURCE_ALT=$(pactl list short sources | grep bluez_source | awk '{ print $2 }') 
+      SOURCE_ALT=$(pactl list short sources | grep bluez_source | awk '{ print $2 }')
       echo "Alt source: $SOURCE_ALT"
       if [[ ! -z "$SOURCE" ]]; then
         if [[ $SOURCE =~ "bluez_source" ]]; then
@@ -30,13 +30,13 @@ while [ true ]; do
             echo "FAILURE: running 'pactl list modules short'"
             # start subscription again on failure. it seems to get stuck
           fi
-	else
+        else
           echo "skipping: source is not bluetooth"
-	  echo "BAD SOURCE: $SOURCE"
-	fi
+          echo "BAD SOURCE: $SOURCE"
+        fi
       else
         echo "skipping: empty source"
-      fi 
+      fi
     fi
 
     ## Hack to continuously monitor for automatically added loopbacks that go straight to ALSA and remove

@@ -24,10 +24,10 @@ let
     name = "snapclient-${stream.name}";
     value = {
       wantedBy = [
-        "pulseaudio.service"
+        "snapserver.service"
       ];
       after = [
-        "pulseaudio.service"
+        "snapserver.service"
       ];
       path = with pkgs; [
         pulseaudio
@@ -38,6 +38,7 @@ let
         snapclient --logsink null --instance ${toString (index + 3)} -h ${stream.ip-address} --player file > /run/snapserver/${stream.name}
       '';
       serviceConfig = {
+        ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
         User = config.mediaserver.username;
       };
     };
