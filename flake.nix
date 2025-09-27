@@ -25,7 +25,7 @@
   }@inputs:
   let
     mediaserver-inputs = inputs;
-    
+
     # Helper function to create script apps
     mkScriptApp = system: pkgs: scriptName: scriptPath: {
       type = "app";
@@ -33,7 +33,7 @@
         exec ${scriptPath} "$@"
       ''}/bin/${scriptName}";
     };
-    
+
     # Create apps for a specific system
     mkSystemApps = system: pkgs: {
       deploy = mkScriptApp system pkgs "deploy" ./scripts/remote-deploy.sh;
@@ -50,11 +50,13 @@
       x86_64-linux = mkSystemApps "x86_64-linux" nixpkgs.legacyPackages.x86_64-linux;
       aarch64-linux = mkSystemApps "aarch64-linux" nixpkgs.legacyPackages.aarch64-linux;
     };
-    
+
     nixosConfigurations = {
       rpi4 = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
+          ## Needed to build sd images
+          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           ./rpi4.nix
         ];
         specialArgs = {
@@ -65,6 +67,8 @@
       rpi4-cross-compile = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
+          ## Needed to build sd images
+          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           ./rpi4.nix
           { nixpkgs.buildPlatform = "x86_64-linux"; }
         ];
