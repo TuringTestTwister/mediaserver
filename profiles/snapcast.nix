@@ -112,12 +112,14 @@ in
     daemon.config = {
       # Set the default and alternate sample rates
       default-sample-rate = 44100;
+      ## Needed for bluetooth output
       alternate-sample-rate = 48000;
 
       # Enable automatic resampling with high quality
       resample-method = "speex-float-5";
 
       # Allow PulseAudio to automatically adjust rates
+      ## Needed for bluetooth output
       avoid-resampling = false;
 
       # Enable rate adjustment for better Bluetooth compatibility
