@@ -57,7 +57,6 @@
     };
   };
 
-
   # Create the secrets file with proper permissions
   system.activationScripts.wirelessSecrets = ''
     touch /etc/nixos/wireless-secrets

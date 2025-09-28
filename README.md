@@ -232,6 +232,32 @@ Example controller configuration:
 }
 ```
 
+### Connecting bluetooth input (e.g. phone or computer)
+
+```
+bluetoothctl
+  power on
+  discoverable on
+  pairable on
+  # pair from phone
+  # answer yes to everything on phone and mediaserver
+  trust
+```
+
+### Connecting bluetooth output (e.g. speaker)
+
+```
+bluetoothctl
+  power on
+  discoverable on
+  pairable on
+  scan on
+  pair <speaker address>
+  # May need to tap bluetooth button on speaker, e.g. Soundcore Boom 2
+  connect
+  trust
+```
+
 
 ## Architecture
 
@@ -288,6 +314,15 @@ ssh mediaserver@hostname.lan
 - Verify WiFi credentials in `wireless-secrets`
 - Check network status: `networkctl status`
 - View network logs: `journalctl -u NetworkManager`
+
+### Bluetooth speaker issues
+- Test for glitches:
+
+```bash
+pactl load-module module-sine frequency=440 rate=48000 sink=bluez_sink.<DEVICE_MAC_ADDRESS>.a2dp_sink
+pactl unload-module module-sine
+
+```
 
 ## License
 
