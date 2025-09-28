@@ -107,6 +107,26 @@ in
       unload-module module-bluetooth-policy
       load-module module-bluetooth-policy a2dp_source=false auto_switch=false
     '';
+
+    # Configure daemon settings for proper resampling
+    daemon.config = {
+      # Set the default and alternate sample rates
+      default-sample-rate = 44100;
+      alternate-sample-rate = 48000;
+
+      # Enable automatic resampling with high quality
+      resample-method = "speex-float-5";
+
+      # Allow PulseAudio to automatically adjust rates
+      avoid-resampling = false;
+
+      # Enable rate adjustment for better Bluetooth compatibility
+      enable-remixing = true;
+      enable-lfe-remixing = false;
+
+      # Set default sample format
+      default-sample-format = "s16le";
+    };
   };
 
   ## Pulseaudio downsamples audio from Bluetooth, and module-loopback

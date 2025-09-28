@@ -2,7 +2,7 @@
 let
   runtime-paths = with pkgs; lib.makeBinPath [
     bluez
-    gobject-introspection 
+    gobject-introspection
   ];
   bluetooth-simple-agent = pkgs.stdenv.mkDerivation rec {
     name = "bluetooth-simple-agent";
@@ -37,7 +37,7 @@ let
 
     installPhase = ''
       install -Dm755 ${./simple-agent.py} $out/bin/bluetooth-simple-agent
- 
+
       wrapProgram $out/bin/bluetooth-simple-agent \
         --suffix PATH : ${runtime-paths}
     '';
@@ -47,7 +47,7 @@ let
     discoverable on
     pairable on
     EOF
- 
+
     ${bluetooth-simple-agent}/bin/bluetooth-simple-agent -c NoInputNoOutput
   '';
 in

@@ -16,6 +16,7 @@
     settings = {
       General = {
         Enable = "Source,Sink,Media,Socket";
+        ControllerMode = "bredr";
         Class = "0x0041C";
         Experimental = true; # Show battery charge of Bluetooth devices
       };

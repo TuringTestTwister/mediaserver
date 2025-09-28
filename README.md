@@ -254,7 +254,7 @@ bluetoothctl
   scan on
   pair <speaker address>
   # May need to tap bluetooth button on speaker, e.g. Soundcore Boom 2
-  connect
+  connect <speaker address>
   trust
 ```
 
