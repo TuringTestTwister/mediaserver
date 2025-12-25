@@ -10,9 +10,10 @@ let
   # backend-args = "--backend=pipe --device=/run/snapserver/main";
   zeroconf-port-udp = 5353;
   zeroconf-port-tcp = 5354;
-  zeroconf-backend = "libmdns";
-  # zeroconf-backend = "avahi";
+  zeroconf-backend = "avahi";
   # zeroconf-backend = "dns-sd";
+  ## Doesn't seem to work
+  # zeroconf-backend = "libmdns";
   zeroconf-args = "--zeroconf-port=${toString zeroconf-port-tcp} --zeroconf-backend ${zeroconf-backend}";
   ## Allows for seeing device across the internet
   # options = "--username <USERNAME> --password <PASSWORD>";
