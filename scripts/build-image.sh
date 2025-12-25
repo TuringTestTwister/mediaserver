@@ -51,10 +51,10 @@ Environment Variables:
 Examples:
   # Build all configured images
   $SCRIPT_NAME
-  
+
   # Build specific configuration from specific flake
   $SCRIPT_NAME -f /path/to/my-flake mediaserver
-  
+
   # Build and keep compressed
   $SCRIPT_NAME --keep-compressed partymusic
 
@@ -67,25 +67,25 @@ build_image() {
     local FORMAT=$2
     local EXT=$3
     local FLAKE_REF="$FLAKE_DIR#nixosConfigurations.${HOST}"
-    
+
     log_info "Building image for $HOST (format: $FORMAT)..."
-    
+
     if ! nix build "$FLAKE_REF.config.system.build.$FORMAT"; then
         log_error "Failed to build image for $HOST"
         return 1
     fi
-    
+
     log_info "Creating output directory: $OUTPUT_DIR"
     mkdir -p "$OUTPUT_DIR"
-    
+
     # Handle the result symlink
     if [ -L ./result ]; then
         local TEMP_RESULT="${HOST}-result"
         if [ -e "./${TEMP_RESULT}" ]; then
             rm -rf "./${TEMP_RESULT}"
         fi
-        mv ./result "./${TEMP_RESULT}"
-        
+        cp -f ./result "./${TEMP_RESULT}"
+
         # Copy the image to build directory
         if [ "$FORMAT" = "sdImage" ]; then
             # For SD images, look in sd-image subdirectory
@@ -108,7 +108,7 @@ build_image() {
                 return 1
             fi
         fi
-        
+
         # Cleanup temporary result
         rm -rf "./${TEMP_RESULT}"
     else
@@ -185,7 +185,7 @@ fi
 # If no specific config name provided, try to detect available configurations
 if [[ -z "$CONFIG_NAME" ]]; then
     log_info "No specific configuration specified, attempting to build all Raspberry Pi configurations..."
-    
+
     # Try common Raspberry Pi configuration names
     CONFIGS_TO_BUILD=()
     for config in mediaserver partymusic speakerserver mediaserver-rpi4 mediaserver-rpi4-cross-compile; do
@@ -194,12 +194,12 @@ if [[ -z "$CONFIG_NAME" ]]; then
             CONFIGS_TO_BUILD+=("$config")
         fi
     done
-    
+
     if [ ${#CONFIGS_TO_BUILD[@]} -eq 0 ]; then
         log_error "No configurations found in flake. Please specify a configuration name."
         exit 1
     fi
-    
+
     log_info "Found configurations: ${CONFIGS_TO_BUILD[*]}"
 else
     CONFIGS_TO_BUILD=("$CONFIG_NAME")
@@ -208,14 +208,14 @@ fi
 # Build each configuration
 for config in "${CONFIGS_TO_BUILD[@]}"; do
     log_info "Processing configuration: $config"
-    
+
     # Determine the system architecture and format
     SYSTEM_ARCH=$(nix eval --raw "$FLAKE_DIR#nixosConfigurations.$config.config.nixpkgs.system" 2>/dev/null || echo "unknown")
-    
+
     if [[ "$SYSTEM_ARCH" == "aarch64-linux" ]]; then
         # Raspberry Pi image
         build_image "$config" "sdImage" "img.zst"
-        
+
         # Decompress if requested
         if [[ "$KEEP_COMPRESSED" == "false" && -f "$OUTPUT_DIR/$config.img.zst" ]]; then
             log_info "Decompressing $config.img.zst..."
@@ -225,6 +225,12 @@ for config in "${CONFIGS_TO_BUILD[@]}"; do
     elif [[ "$SYSTEM_ARCH" == "x86_64-linux" ]]; then
         # x86 qcow2 image
         build_image "$config" "qcow" "qcow2"
+        mkdir -p ./build
+        rm ./${HOST}-image || true
+        cp -f ./result ./${HOST}-image
+        rsync -L ./${HOST}-image/nixos.qcow2 ./build/${HOST}.qcow2
+        chmod 750 ./build/${HOST}.qcow2
+        qemu-img resize ./build/homefree.qcow2 +32G
     else
         log_warning "Unknown or unsupported system architecture for $config: $SYSTEM_ARCH"
     fi

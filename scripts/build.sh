@@ -55,10 +55,10 @@ Environment Variables:
 Examples:
   # Rebuild current system from current directory
   $SCRIPT_NAME
-  
+
   # Rebuild specific configuration from specific flake
   $SCRIPT_NAME -f /path/to/my-flake mediaserver
-  
+
   # Test configuration without making permanent
   $SCRIPT_NAME --test
 
@@ -185,7 +185,7 @@ else
     log_info "Executing rebuild..."
     if eval "$CMD"; then
         log_success "System rebuild completed successfully!"
-        
+
         case "$ACTION" in
             switch)
                 log_info "New configuration has been activated."

@@ -14,7 +14,7 @@
   '';
   hardware.firmware = with pkgs; [
     wireless-regdb
-    firmwareLinuxNonfree
+    linux-firmware
     raspberrypiWirelessFirmware
   ];
   #

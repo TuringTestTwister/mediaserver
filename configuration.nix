@@ -5,7 +5,8 @@
     mediaserver-inputs.nixvim-config.nixosModules.default
     # ./modules/network-manager-wireless.nix
     ./profiles/common.nix
-    ./profiles/mopidy.nix
+    ## currently broken
+    # ./profiles/mopidy.nix
     ./profiles/snapcast.nix
     ./profiles/sound.nix
     ./profiles/spotify-connect.nix
@@ -26,6 +27,29 @@
   ## @TODO: Any ramifications of this?
   systemd.network.wait-online.enable = false;
   systemd.services.NetworkManager-wait-online.enable = false;
+
+  # Route .lan DNS queries to the local DNS server provided by DHCP
+  systemd.network.networks."40-wlan0" = {
+    matchConfig.Name = "wlan0";
+    networkConfig = {
+      DHCP = "yes";
+    };
+    dhcpV4Config = {
+      UseDomains = true;
+    };
+    domains = [ "~lan" ];
+  };
+
+  systemd.network.networks."40-end0" = {
+    matchConfig.Name = "end0";
+    networkConfig = {
+      DHCP = "yes";
+    };
+    dhcpV4Config = {
+      UseDomains = true;
+    };
+    domains = [ "~lan" ];
+  };
 
   # --------------------------------------------------------------------------------------
   # Device specific

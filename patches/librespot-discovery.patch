@@ -1,0 +1,20 @@
+diff --git a/discovery/src/server.rs b/discovery/src/server.rs
+--- a/discovery/src/server.rs
++++ b/discovery/src/server.rs
+@@ -84,14 +84,14 @@
+             "brandDisplayName": "librespot",
+             "modelDisplayName": "librespot",
+             "libraryVersion": crate::core::version::SEMVER,
+-            "resolverVersion": "1",
++            "resolverVersion": "0",
+             // valid values are "GROUP" and "NONE"
+             "groupStatus": group_status,
+             // valid value documented & seen in the wild: "accesstoken"
+             // Using it will cause clients to fail to connect.
+             "tokenType": "default",
+             "clientID": (self.config.client_id),
+-            "productID": 0,
++            "productID": 61035,
+             // Other known scope: client-authorization-universal
+             // Comma-separated.
+             "scope": "streaming",

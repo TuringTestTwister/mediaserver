@@ -17,30 +17,23 @@ in
   ## Provides streams from various sources, including pulse audio sink
   services.snapserver = {
     enable = true;
-    codec = "flac";
-    sampleFormat = "44100:16:2";
-    streams = {
-      # Nix writes these in alphabetical order, and the first one is the default, hence the prefixes
-      main = {
-        type = "meta";
-        ## Prioritize bluetooth over spotify
-        location = "/bluetooth/spotify";
-      };
-      bluetooth = {
-        type = "pipe";
-        location = "/run/snapserver/bluetooth";
-        ## Per stream sampleformat doesn't seem to work
-        # sampleFormat = "48000:24:2";
-      };
-      spotify = {
-        type = "pipe";
-        location = "/run/snapserver/spotify";
-      };
-    };
     openFirewall = true;
     http = {
       enable = true;
       docRoot = "${snapweb}/share/html";
+    };
+    settings = {
+      stream = {
+        codec = "flac";
+        sampleformat = "44100:16:2";
+        source = [
+          # Pipe sources for bluetooth and spotify
+          "pipe:///run/snapserver/bluetooth?name=bluetooth"
+          "pipe:///run/snapserver/spotify?name=spotify"
+          # Meta source combines bluetooth and spotify, prioritizing bluetooth
+          "meta:///bluetooth/spotify?name=main"
+        ];
+      };
     };
   };
 

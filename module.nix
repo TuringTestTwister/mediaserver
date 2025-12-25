@@ -55,7 +55,7 @@
     };
 
     snapcastServerHost = lib.mkOption {
-      type = lib.types.string;
+      type = lib.types.str;
       default = "::1";
       description = "Snapcast server host address";
     };
@@ -72,12 +72,12 @@
       type = with lib.types; listOf (submodule {
         options = {
           name = lib.mkOption {
-            type = lib.types.string;
+            type = lib.types.str;
             description = "Name of stream";
           };
 
           ip-address = lib.mkOption {
-            type = lib.types.string;
+            type = lib.types.str;
             description = "IP Address of stream";
           };
         };

@@ -138,6 +138,7 @@ Options:
   -d, --dry-run             Show what would be done without executing
   -k, --keep-result         Keep the local build result symlink
   -r, --reboot              Reboot after successful activation
+  -v, --verbose             Show build output in real-time
   -h, --help               Show this help
 
 Environment Variables:
@@ -168,6 +169,7 @@ EOF
 DRY_RUN=false
 KEEP_RESULT=false
 REBOOT_AFTER=false
+VERBOSE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -193,6 +195,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -r|--reboot)
             REBOOT_AFTER=true
+            shift
+            ;;
+        -v|--verbose)
+            VERBOSE=true
             shift
             ;;
         -*)
@@ -265,33 +271,46 @@ if [[ "$DRY_RUN" == "true" ]]; then
     log_info "Would run: nix build --no-link --print-out-paths '$FLAKE_REF.config.system.build.toplevel'"
     SYSTEM_PATH="/nix/store/dummy-system-path"
 else
-    # Capture both stdout and stderr separately
-    BUILD_OUTPUT=$(mktemp)
-    BUILD_STDERR=$(mktemp)
-
-    if nix build --no-link --print-out-paths "$FLAKE_REF.config.system.build.toplevel" > "$BUILD_OUTPUT" 2> "$BUILD_STDERR"; then
-        # Extract the store path (should be the only line starting with /nix/store/)
-        SYSTEM_PATH=$(grep '^/nix/store/' "$BUILD_OUTPUT" | head -1)
-
-        # Show any warnings that were sent to stderr
-        if [[ -s "$BUILD_STDERR" ]]; then
-            log_warning "Build warnings:"
-            cat "$BUILD_STDERR" | sed 's/^/  /'
+    if [[ "$VERBOSE" == "true" ]]; then
+        # Verbose mode: show output in real-time, capture store path
+        # -L shows full build logs for each derivation
+        BUILD_OUTPUT=$(mktemp)
+        if nix build -L --no-link --print-out-paths "$FLAKE_REF.config.system.build.toplevel" 2>&1 | tee "$BUILD_OUTPUT"; then
+            SYSTEM_PATH=$(grep '^/nix/store/' "$BUILD_OUTPUT" | head -1)
+        else
+            rm -f "$BUILD_OUTPUT"
+            exit 1
         fi
+        rm -f "$BUILD_OUTPUT"
     else
-        log_error "Build failed:"
-        cat "$BUILD_STDERR" | tail -20  # Show last 20 lines of error
-        log_error ""
-        log_error "Troubleshooting tips:"
-        log_error "  - Try: nix-collect-garbage && nix flake update"
-        log_error "  - Check if you're cross-compiling (might need binary cache)"
-        log_error "  - For full logs: nix log <drv-path-from-error>"
-        rm -f "$BUILD_OUTPUT" "$BUILD_STDERR"
-        exit 1
-    fi
+        # Quiet mode: capture output to temp files
+        BUILD_OUTPUT=$(mktemp)
+        BUILD_STDERR=$(mktemp)
 
-    # Cleanup temp files
-    rm -f "$BUILD_OUTPUT" "$BUILD_STDERR"
+        if nix build --no-link --print-out-paths "$FLAKE_REF.config.system.build.toplevel" > "$BUILD_OUTPUT" 2> "$BUILD_STDERR"; then
+            # Extract the store path (should be the only line starting with /nix/store/)
+            SYSTEM_PATH=$(grep '^/nix/store/' "$BUILD_OUTPUT" | head -1)
+
+            # Show any warnings that were sent to stderr
+            if [[ -s "$BUILD_STDERR" ]]; then
+                log_warning "Build warnings:"
+                cat "$BUILD_STDERR" | sed 's/^/  /'
+            fi
+        else
+            log_error "Build failed:"
+            cat "$BUILD_STDERR" | tail -20  # Show last 20 lines of error
+            log_error ""
+            log_error "Troubleshooting tips:"
+            log_error "  - Try: nix-collect-garbage && nix flake update"
+            log_error "  - Check if you're cross-compiling (might need binary cache)"
+            log_error "  - For full logs: nix log <drv-path-from-error>"
+            rm -f "$BUILD_OUTPUT" "$BUILD_STDERR"
+            exit 1
+        fi
+
+        # Cleanup temp files
+        rm -f "$BUILD_OUTPUT" "$BUILD_STDERR"
+    fi
 
     if [[ -z "$SYSTEM_PATH" ]]; then
         log_error "Build failed - no system path returned"

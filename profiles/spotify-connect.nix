@@ -8,8 +8,12 @@ let
   # backend-args = "--backend=alsa";
   backend-args = "--backend=pipe --device=/run/snapserver/spotify";
   # backend-args = "--backend=pipe --device=/run/snapserver/main";
-  zeroconf-port = 5354;
-  zeroconf-args = "--zeroconf-port=${toString zeroconf-port}";
+  zeroconf-port-udp = 5353;
+  zeroconf-port-tcp = 5354;
+  zeroconf-backend = "libmdns";
+  # zeroconf-backend = "avahi";
+  # zeroconf-backend = "dns-sd";
+  zeroconf-args = "--zeroconf-port=${toString zeroconf-port-tcp} --zeroconf-backend ${zeroconf-backend}";
   ## Allows for seeing device across the internet
   # options = "--username <USERNAME> --password <PASSWORD>";
   # debug-args = "--verbose";
@@ -17,7 +21,7 @@ let
 in
 {
   imports = [
-    ../overlays/librespot-dev.nix
+    ../overlays/librespot-zeroconf.nix
   ];
 
   environment.systemPackages = [
@@ -27,7 +31,8 @@ in
   systemd.services = {
     spotify-connect = {
       description = "Spotify Connect Daemon";
-      after = [ "spanclient.service" ];
+      after = [ "snapclient.service" "network-online.target" ];
+      wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
@@ -48,6 +53,17 @@ in
     mkdir -p /var/cache/spotify-connect
   '';
 
-  networking.firewall.allowedTCPPorts = [ zeroconf-port ];
+  networking.firewall.allowedUDPPorts = [ zeroconf-port-udp ];
+  networking.firewall.allowedTCPPorts = [ zeroconf-port-tcp ];
+
+  # Allow non-root users to publish services via Avahi
+  services.avahi.publish.enable = true;
+  services.avahi.publish.userServices = true;
+
+  # # Workaround for librespot discovery issues
+  # # https://forum.libreelec.tv/thread/25931-librespot-no-longer-works/
+  # networking.extraHosts = ''
+  #   0.0.0.0 apresolve.spotify.com
+  # '';
 }
 
