@@ -10,6 +10,7 @@
     ./profiles/snapcast.nix
     ./profiles/sound.nix
     ./profiles/spotify-connect.nix
+    ./profiles/touch-ui.nix
   ];
 
   # --------------------------------------------------------------------------------------
@@ -84,8 +85,8 @@
   # Create the secrets file with proper permissions
   system.activationScripts.wirelessSecrets = ''
     touch /etc/nixos/wireless-secrets
-    chmod 600 /etc/nixos/wireless-secrets
-    chown root:root /etc/nixos/wireless-secrets
+    chmod 640 /etc/nixos/wireless-secrets
+    chown root:wpa_supplicant /etc/nixos/wireless-secrets
   '';
 
   # Supposedly fixes bluetooth stuttering by setting the appropriate region to limit frequencies, but doesn't seem to work

@@ -1,8 +1,24 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   snapweb = pkgs.callPackage ../pkgs/snapweb {};
   # "-s sysdefault" selects "headphone" alsa device
   snapclientSoundcardParam = if config.mediaserver.forceHeadphoneOutput then "-s sysdefault" else "";
+
+  cfg = config.mediaserver;
+
+  # Base sources always present
+  baseSources = [
+    "pipe:///run/snapserver/bluetooth?name=bluetooth"
+    "pipe:///run/snapserver/spotify?name=spotify"
+  ];
+
+  # Base meta names
+  baseMetaNames = [ "bluetooth" "spotify" ];
+
+  # Build full source list with extras from other profiles
+  allMetaNames = baseMetaNames ++ cfg._snapcastExtraMetaNames;
+  metaSource = "meta:///${lib.concatStringsSep "/" allMetaNames}?name=main";
+  allSources = baseSources ++ cfg._snapcastExtraSources ++ [ metaSource ];
 in
 {
   environment.systemPackages = with pkgs; [
@@ -18,21 +34,15 @@ in
   services.snapserver = {
     enable = true;
     openFirewall = true;
-    http = {
-      enable = true;
-      docRoot = "${snapweb}/share/html";
+    settings.http = {
+      enabled = true;
+      doc_root = "${snapweb}/share/html";
     };
     settings = {
       stream = {
         codec = "flac";
         sampleformat = "44100:16:2";
-        source = [
-          # Pipe sources for bluetooth and spotify
-          "pipe:///run/snapserver/bluetooth?name=bluetooth"
-          "pipe:///run/snapserver/spotify?name=spotify"
-          # Meta source combines bluetooth and spotify, prioritizing bluetooth
-          "meta:///bluetooth/spotify?name=main"
-        ];
+        source = allSources;
       };
     };
   };

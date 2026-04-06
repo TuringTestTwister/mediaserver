@@ -10,10 +10,12 @@ let
   # backend-args = "--backend=pipe --device=/run/snapserver/main";
   zeroconf-port-udp = 5353;
   zeroconf-port-tcp = 5354;
-  zeroconf-backend = "avahi";
+  # zeroconf-backend = "avahi";
   # zeroconf-backend = "dns-sd";
-  ## Doesn't seem to work
-  # zeroconf-backend = "libmdns";
+  # Using libmdns (in-process mDNS) instead of avahi because our periodic
+  # mDNS re-announcement script causes Avahi name collisions that crash librespot.
+  # libmdns handles mDNS internally, so raw announcement packets don't conflict.
+  zeroconf-backend = "libmdns";
   zeroconf-args = "--zeroconf-port=${toString zeroconf-port-tcp} --zeroconf-backend ${zeroconf-backend}";
   ## Allows for seeing device across the internet
   # options = "--username <USERNAME> --password <PASSWORD>";
@@ -29,10 +31,35 @@ in
     pkgs.librespot
   ];
 
+  # WiFi multicast is unreliable: mDNS records advertised by librespot/Avahi
+  # get cached by the Spotify app, but when the cache expires, the follow-up
+  # mDNS query/response often fails to traverse WiFi. The device then
+  # disappears from the Spotify app. This timer sends gratuitous mDNS
+  # announcements every 30 seconds to keep the cache fresh. See
+  # scripts/mdns-announce.py for full explanation.
+  systemd.timers.spotify-connect-reannounce = {
+    description = "Periodically send mDNS announcements for Spotify Connect";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnActiveSec = "30s";
+      OnUnitActiveSec = "30s";
+    };
+  };
+
   systemd.services = {
+    spotify-connect-reannounce = {
+      description = "Send gratuitous mDNS announcement for Spotify Connect";
+      after = [ "spotify-connect.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.python3}/bin/python3 ${../scripts/mdns-announce.py}";
+      };
+    };
+
     spotify-connect = {
       description = "Spotify Connect Daemon";
-      after = [ "snapclient.service" "network-online.target" ];
+      after = [ "snapserver.service" "network-online.target" ];
+      requires = [ "snapserver.service" ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
 
@@ -45,6 +72,7 @@ in
         PermissionsStartOnly = true;
         Restart = "always";
         RestartSec = 10;
+        ExecStartPre = "${pkgs.bash}/bin/bash -c 'until [ -p /run/snapserver/spotify ]; do sleep 1; done'";
         ExecStart = "${pkgs.librespot}/bin/librespot --name '${device-name}' ${zeroconf-args} ${backend-args} --bitrate ${bitrate} ${cache-args} ${volume-args} ${debug-args}";
       };
     };

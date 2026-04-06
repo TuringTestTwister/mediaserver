@@ -1,4 +1,4 @@
-{ config, pkgs, mediaserver-inputs, system, ...}:
+{ config, pkgs, mediaserver-inputs, ...}:
 {
 
   # --------------------------------------------------------------------------------------
@@ -128,11 +128,11 @@
       packageOverrides = pkgs: {
         unstable = import mediaserver-inputs.nixpkgs-unstable {
           config = config.nixpkgs.config;
-          inherit system;
+          system = pkgs.stdenv.hostPlatform.system;
         };
         trunk = import mediaserver-inputs.nixpkgs-trunk {
           config = config.nixpkgs.config;
-          inherit system;
+          system = pkgs.stdenv.hostPlatform.system;
         };
       };
     };
@@ -142,8 +142,8 @@
   # Services
   # --------------------------------------------------------------------------------------
 
-  # Does this conflict with librespot?
   services.resolved.enable = true;
+  services.resolved.settings.Resolve.MulticastDNS = "no";
 
   # Firmware/BIOS updates
   services.fwupd.enable = true;
@@ -261,7 +261,7 @@
     jhead
     minicom
     mpv
-    neofetch
+    fastfetch
     # neovim
     unstable.nil
     nix-index

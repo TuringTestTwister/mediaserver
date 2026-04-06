@@ -84,6 +84,54 @@
       });
     };
 
+    touchUI = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable touch screen UI with Wayland kiosk compositor for local music control";
+    };
+
+    touchUIHideBrowserChrome = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Hide browser tabs, address bar, and other chrome in kiosk mode";
+    };
+
+    touchUIScreenWidth = lib.mkOption {
+      type = lib.types.int;
+      default = 1024;
+      description = "Touch screen horizontal resolution in pixels";
+    };
+
+    touchUIScreenHeight = lib.mkOption {
+      type = lib.types.int;
+      default = 600;
+      description = "Touch screen vertical resolution in pixels";
+    };
+
+    touchUIScreenSize = lib.mkOption {
+      type = lib.types.float;
+      default = 7.0;
+      description = "Touch screen diagonal size in inches";
+    };
+
+    touchUIIdleTimeout = lib.mkOption {
+      type = lib.types.int;
+      default = 300;
+      description = "Seconds of inactivity before screen blanks (0 to disable)";
+    };
+
+    _snapcastExtraSources = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Additional Snapcast source URIs (internal, used by profiles)";
+    };
+
+    _snapcastExtraMetaNames = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Additional source names to include in the meta stream (internal, used by profiles)";
+    };
+
     forceHeadphoneOutput = lib.mkOption {
       type = lib.types.bool;
       default = false;
