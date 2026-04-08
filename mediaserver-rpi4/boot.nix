@@ -15,7 +15,7 @@
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = true;
 
-  powerManagement.cpuFreqGovernor = "ondemand";
+  powerManagement.cpuFreqGovernor = "performance";
 
   # Deals with compilation error
   # https://github.com/NixOS/nixpkgs/issues/154163

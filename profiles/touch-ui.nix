@@ -13,7 +13,7 @@ let
   maxDim = if w > h then w else h;
   approxDiagonalPixels = maxDim * 1.1;
   actualDpi = approxDiagonalPixels / cfg.touchUIScreenSize;
-  targetDpi = 110.0;
+  targetDpi = 85.0;
   rawScale = actualDpi / targetDpi;
   scaleFactor = let
     rounded = builtins.floor (rawScale * 4.0 + 0.5) / 4.0;
@@ -169,8 +169,13 @@ let
       ${pkgs.wlr-randr}/bin/wlr-randr --output "$OUTPUT" --scale ${scaleStr} || true
     fi
 
-    # Wipe Chromium profile on each boot to prevent "Profile error" and "Restore pages?" dialogs
-    rm -rf /home/${cfg.username}/.config/chromium
+    # Clear Chromium session state to prevent "Restore pages?" dialogs, but preserve login cookies
+    rm -f /home/${cfg.username}/.config/chromium/Default/Preferences
+    rm -f /home/${cfg.username}/.config/chromium/Default/Current\ Session
+    rm -f /home/${cfg.username}/.config/chromium/Default/Current\ Tabs
+    rm -f /home/${cfg.username}/.config/chromium/Default/Last\ Session
+    rm -f /home/${cfg.username}/.config/chromium/Default/Last\ Tabs
+    rm -rf /home/${cfg.username}/.config/chromium/Singleton*
 
     # Set Firefox as default browser for xdg-open (used by SoundCloud Desktop for OAuth)
     mkdir -p /home/${cfg.username}/.config
