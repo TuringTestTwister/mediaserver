@@ -7,6 +7,39 @@ while [ true ]; do
     # if [ $type != 'client' ]; then
     #   echo "event: $event, type: $type, num: $num"
     # fi
+    # When a Bluetooth speaker (sink) connects, route all audio to it.
+    # module-switch-on-port-available is unloaded (to protect source routing),
+    # so we handle sink switching manually here.
+    #
+    # IMPORTANT: Only route to dedicated speakers, NOT phones/laptops.
+    # When a phone connects to stream audio TO us, it appears as both a
+    # bluez_source and a bluez_sink. Routing snapclient back to the phone's
+    # sink would create a feedback loop. A real speaker only has a sink,
+    # never a source. We detect this by extracting the device MAC from the
+    # sink name (e.g. bluez_sink.F4_2B_7D_27_C8_57) and checking if a
+    # matching bluez_source exists.
+    if [ $event == "'new'" -a $type == 'sink' ]; then
+      SINK_NUM=${num:1}
+      SINK=$(pactl list sinks short | grep -e "^$SINK_NUM\s" | awk '{ print $2 }')
+      if [[ ! -z "$SINK" ]] && [[ $SINK =~ "bluez_sink" ]]; then
+        # Extract device MAC from sink name (e.g. bluez_sink.F4_2B_7D_27_C8_57.a2dp_sink -> F4_2B_7D_27_C8_57)
+        DEVICE_MAC=$(echo "$SINK" | sed 's/bluez_sink\.\([^.]*\).*/\1/')
+        # Check if this device also has a source (= phone/laptop, not a speaker)
+        MATCHING_SOURCE=$(pactl list sources short | grep "bluez_source\.$DEVICE_MAC")
+        if [[ -z "$MATCHING_SOURCE" ]]; then
+          echo "New Bluetooth speaker detected: $SINK"
+          for INPUT in $(pactl list sink-inputs short | awk '{ print $1 }'); do
+            echo "Moving sink-input $INPUT to $SINK"
+            pactl move-sink-input "$INPUT" "$SINK"
+          done
+          pactl set-default-sink "$SINK"
+          echo "Set default sink to $SINK"
+        else
+          echo "Skipping sink $SINK — device also has a source (phone/laptop, not a speaker)"
+        fi
+      fi
+    fi
+
     if [ $event == "'new'" -a $type == 'source' ]; then
       echo "event: $event, type: $type, num: $num"
       # Remove leading hashmark
